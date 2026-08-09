@@ -1,0 +1,23 @@
+# --- secrets & deploy creds (repo is PUBLIC — keep these OUT) ---
+# NB: /secrets/* (не /secrets/) — иначе негейт ниже не сработает: git не
+# заходит внутрь целиком исключённой папки и !env.example игнорируется.
+/secrets/*
+!/secrets/env.example
+*.key
+*.pem
+*.env
+.env
+.env.*
+
+# --- build artifacts ---
+/gm-screen
+/bin/
+/dist/
+*.exe
+
+# --- go ---
+/vendor/
+
+# --- os / editor ---
+.DS_Store
+*.swp

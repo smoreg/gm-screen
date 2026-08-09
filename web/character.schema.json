@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gm-character/v1",
+  "title": "GM Character v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "name", "level", "ac", "hp", "abilities", "prof"],
+  "properties": {
+    "schema": { "const": "gm-character/v1" },
+    "name": { "type": "string", "minLength": 1 },
+    "player": { "type": ["string", "null"] },
+    "class": { "type": ["string", "null"] },
+    "subclass": { "type": ["string", "null"] },
+    "level": { "type": "integer", "minimum": 1, "maximum": 20 },
+    "race": { "type": ["string", "null"] },
+    "background": { "type": ["string", "null"] },
+    "alignment": { "type": ["string", "null"] },
+    "ac": { "type": "integer" },
+    "hp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max"],
+      "properties": {
+        "max": { "type": "integer", "minimum": 1 },
+        "current": { "type": "integer" },
+        "temp": { "type": "integer" }
+      }
+    },
+    "speed": { "type": ["string", "null"] },
+    "initiative": { "type": "integer" },
+    "prof": { "type": "integer", "minimum": 2, "maximum": 6 },
+    "abilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["str", "dex", "con", "int", "wis", "cha"],
+      "properties": {
+        "str": { "type": "integer" },
+        "dex": { "type": "integer" },
+        "con": { "type": "integer" },
+        "int": { "type": "integer" },
+        "wis": { "type": "integer" },
+        "cha": { "type": "integer" }
+      }
+    },
+    "saves": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["str", "dex", "con", "int", "wis", "cha"] }
+    },
+    "skills": { "type": ["string", "null"] },
+    "passives": {
+      "type": "object",
+      "additionalProperties": { "type": "integer" }
+    },
+    "senses": { "type": ["string", "null"] },
+    "languages": { "type": ["string", "null"] },
+    "attacks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "hit": { "type": ["integer", "null"] },
+          "damage": { "type": "string" },
+          "type": { "type": "string" },
+          "note": { "type": "string" },
+          "extra": { "type": "string" }
+        }
+      }
+    },
+    "spellcasting": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "ability": { "type": "string" },
+        "dc": { "type": "integer" },
+        "attack": { "type": "integer" },
+        "slots": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "spells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "level": { "type": "integer", "minimum": 0, "maximum": 9 },
+              "desc": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "features": { "type": "array", "items": { "type": "string" } },
+    "gear": { "type": "array", "items": { "type": "string" } },
+    "conditions": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

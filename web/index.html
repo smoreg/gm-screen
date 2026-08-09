@@ -1,0 +1,1653 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>GM-экран · мульти-ваншот</title>
+<style>
+  :root{
+    --bg:#e7dfcd; --panel:#f2ecdd; --panel2:#e0d6c0; --raise:#faf5e9;
+    --ink:#2b241b; --muted:#6c6250; --line:#cabfa2;
+    --brass:#8f6f27; --brass2:#c9a24b; --blood:#9c3b32; --info:#356863; --good:#4f7a3f;
+    --shadow:0 1px 2px rgba(40,30,15,.12),0 6px 20px rgba(40,30,15,.10);
+    --r:12px; --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --mono:"SFMono-Regular",ui-monospace,"Cascadia Mono","Consolas",monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#171310; --panel:#211b15; --panel2:#2a2219; --raise:#312819;
+    --ink:#e8e0cf; --muted:#a99c82; --line:#3a3125;
+    --brass:#c9a24b; --brass2:#e3c274; --blood:#c65b4e; --info:#6fa9a2; --good:#82b166;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }}
+  :root[data-theme="light"]{
+    --bg:#e7dfcd; --panel:#f2ecdd; --panel2:#e0d6c0; --raise:#faf5e9;
+    --ink:#2b241b; --muted:#6c6250; --line:#cabfa2;
+    --brass:#8f6f27; --brass2:#c9a24b; --blood:#9c3b32; --info:#356863; --good:#4f7a3f;
+    --shadow:0 1px 2px rgba(40,30,15,.12),0 6px 20px rgba(40,30,15,.10);
+  }
+  :root[data-theme="dark"]{
+    --bg:#171310; --panel:#211b15; --panel2:#2a2219; --raise:#312819;
+    --ink:#e8e0cf; --muted:#a99c82; --line:#3a3125;
+    --brass:#c9a24b; --brass2:#e3c274; --blood:#c65b4e; --info:#6fa9a2; --good:#82b166;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 16px 150px}
+  header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .hbar{max-width:1120px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;gap:1px;margin-right:auto}
+  .brand b{font-family:var(--serif);font-size:1.28rem;font-weight:600;letter-spacing:.2px;line-height:1.1}
+  .brand span{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .htools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .advsel{display:flex;align-items:center;gap:6px;border:1px solid var(--brass);border-radius:10px;padding:3px 3px 3px 10px;background:var(--panel)}
+  .advsel label{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+  .advsel select{font-family:var(--serif);font-size:.92rem;background:var(--raise);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:60vw}
+  button{font-family:var(--sans);cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:7px 11px;font-size:.82rem;transition:transform .06s,background .15s,border-color .15s}
+  button:hover{border-color:var(--brass)}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+  .d20{border-color:var(--brass);color:var(--brass2);font-weight:600}
+  .ghost{background:transparent}
+  .dice{display:flex;gap:3px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:3px;background:var(--panel)}
+  .dice input{width:2.8em;background:var(--raise);border:1px solid var(--line);border-radius:7px;color:var(--ink);font-family:var(--mono);text-align:center;padding:4px}
+  .dice button{padding:6px 9px;font-family:var(--mono);font-size:.8rem;border-color:transparent;background:transparent}
+  .dice button:hover{border-color:var(--brass)}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:18px 0 10px;border-bottom:1px solid var(--line)}
+  .tab{background:transparent;border:1px solid transparent;border-bottom:none;border-radius:10px 10px 0 0;padding:9px 15px;font-size:.9rem;color:var(--muted);font-family:var(--serif);letter-spacing:.2px}
+  .tab[aria-selected="true"]{color:var(--ink);background:var(--panel);border-color:var(--line);box-shadow:0 -2px 0 var(--brass) inset}
+  section[role=tabpanel]{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  h2.eyebrow{font-family:var(--serif);font-size:1.35rem;font-weight:600;margin:22px 0 4px;text-wrap:balance}
+  .lead{color:var(--muted);max-width:66ch;margin:0 0 12px}
+  .flow{display:grid;gap:10px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow)}
+  .step h3{margin:0 0 4px;font-family:var(--serif);font-size:1.02rem;display:flex;align-items:baseline;gap:9px}
+  .step h3 i{font-style:normal;font-family:var(--mono);font-size:.78rem;color:var(--brass);border:1px solid var(--line);border-radius:6px;padding:1px 7px;background:var(--panel2)}
+  .step p{margin:0;font-size:.92rem}
+  .ends{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}
+  .end{border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:10px;padding:11px 13px;background:var(--panel)}
+  .end b{font-family:var(--serif)}
+  .end small{color:var(--muted);display:block;margin-top:3px;font-size:.82rem}
+  .filter{display:flex;gap:8px;align-items:center;margin:6px 0 14px;flex-wrap:wrap}
+  .filter input{flex:1;min-width:180px;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--ink);font-family:var(--sans);font-size:.9rem}
+  .filter input:focus-visible{outline:2px solid var(--brass2);outline-offset:1px}
+  .chipset{display:flex;gap:6px;flex-wrap:wrap}
+  .chipf{font-size:.78rem;padding:5px 10px}
+  .chipf.on{border-color:var(--brass);color:var(--brass2);background:var(--panel2)}
+  .sbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-items:start}
+  .sb{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+  .sb>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:center}
+  .sb>summary::-webkit-details-marker{display:none}
+  .sb>summary::after{content:"▸";margin-left:auto;color:var(--muted);transition:transform .15s}
+  .sb[open]>summary::after{transform:rotate(90deg)}
+  .sb .nm{font-family:var(--serif);font-size:1.04rem;font-weight:600;line-height:1.15}
+  .sb .role{font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .cr{font-family:var(--mono);font-size:.72rem;color:var(--brass2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;background:var(--panel2)}
+  .sbbody{padding:0 14px 14px;border-top:1px solid var(--line)}
+  .vitals{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+  .vit{font-family:var(--mono);font-size:.78rem;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+  .vit b{color:var(--brass2)}
+  .ab6{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:10px 0}
+  .ab6 .ab{text-align:center;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:5px 2px}
+  .ab6 .ab b{display:block;font-size:.64rem;color:var(--muted);letter-spacing:.04em}
+  .ab6 .ab u{display:block;text-decoration:none;font-family:var(--mono);font-size:.86rem}
+  .ab6 .ab s{display:block;text-decoration:none;font-family:var(--mono);font-size:.72rem;color:var(--brass2)}
+  .saverow{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px;align-items:center}
+  .saverow .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+  .b-save{font-family:var(--mono);font-size:.74rem;padding:4px 7px;border-color:var(--info)}
+  .b-save.prof{border-color:var(--brass);color:var(--brass2);font-weight:600}
+  .kv{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+  .kv b{color:var(--ink);font-weight:600}
+  .atk{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:7px 0;border-top:1px dashed var(--line)}
+  .atk .an{flex:1;min-width:120px;font-size:.86rem}
+  .atk .an small{color:var(--muted);font-family:var(--mono);font-size:.76rem}
+  .b-atk{border-color:var(--blood);color:var(--blood)}
+  .b-dmg{border-color:var(--brass);color:var(--brass2)}
+  .b-init{border-color:var(--info);color:var(--info)}
+  .abil{margin:10px 0 0;font-size:.85rem;color:var(--muted);padding-left:18px}
+  .abil li{margin:3px 0}
+  .mini{padding:4px 8px;font-size:.76rem}
+  .initbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+  .initbar input{background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:8px 10px;color:var(--ink);font-size:.88rem}
+  .track{display:grid;gap:6px}
+  .round{font-family:var(--mono);font-size:.8rem;color:var(--brass2);border:1px dashed var(--brass);border-radius:8px;padding:4px 10px;justify-self:start;background:var(--panel2)}
+  .trow{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:9px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+  .trow .iv{font-family:var(--mono);font-size:1.05rem;color:var(--brass2);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+  .trow .tn{font-family:var(--serif)}
+  .trow .hp{display:flex;gap:4px;align-items:center;font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+  .trow .hp input{width:3.4em;background:var(--raise);border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:2px 4px;font-family:var(--mono);text-align:center}
+  .trow.turn{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset}
+  .empty{color:var(--muted);font-size:.9rem;padding:14px;text-align:center;border:1px dashed var(--line);border-radius:10px}
+  .tips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+  .card h4{margin:0 0 7px;font-family:var(--serif);font-size:1rem;display:flex;gap:8px;align-items:center}
+  .card ul{margin:0;padding-left:18px;font-size:.88rem}
+  .card li{margin:4px 0}
+  .card table{width:100%;border-collapse:collapse;font-size:.84rem}
+  .card td{padding:3px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  .card td:first-child{color:var(--brass2);font-family:var(--mono);white-space:nowrap;font-size:.8rem}
+  .dc{font-family:var(--mono);color:var(--brass2);font-weight:600}
+  .qroll{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+  .qroll input{width:5em;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:7px 9px;color:var(--ink);font-family:var(--mono)}
+  .prompt{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--shadow)}
+  .prompt .ph{padding:12px 15px 0;display:flex;align-items:baseline;gap:10px}
+  .prompt .ph b{font-family:var(--serif);font-size:1.02rem}
+  .prompt .tg{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .prompt pre{margin:9px 15px 0;padding:12px;background:var(--raise);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);font-size:.8rem;line-height:1.5;white-space:pre-wrap;overflow-x:auto;color:var(--ink)}
+  .prompt .pf{padding:10px 15px 14px;display:flex;gap:8px;align-items:center}
+  .docbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px 26px;box-shadow:var(--shadow);max-width:78ch}
+  .doc h1{font-family:var(--serif);font-size:1.5rem;margin:.2em 0 .4em;border-bottom:2px solid var(--brass);padding-bottom:.2em}
+  .doc h2{font-family:var(--serif);font-size:1.2rem;margin:1.1em 0 .3em;color:var(--brass2)}
+  .doc h3{font-family:var(--serif);font-size:1.02rem;margin:.9em 0 .2em}
+  .doc p{margin:.5em 0;font-size:.92rem}
+  .doc ul,.doc ol{margin:.4em 0;padding-left:1.3em;font-size:.92rem}
+  .doc li{margin:.2em 0}
+  .doc blockquote{margin:.6em 0;padding:.4em .9em;border-left:3px solid var(--brass);background:var(--panel2);border-radius:0 8px 8px 0;color:var(--muted)}
+  .doc hr{border:none;border-top:1px solid var(--line);margin:1.1em 0}
+  .doc code{font-family:var(--mono);font-size:.85em;background:var(--panel2);padding:1px 5px;border-radius:5px}
+  .doc pre{background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.4}
+  .doc strong{color:var(--ink)}
+  #dock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.18)}
+  .dockin{max-width:1120px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:12px}
+  .result{font-family:var(--mono);font-size:1.35rem;font-variant-numeric:tabular-nums;min-width:3ch;text-align:center;color:var(--brass2);font-weight:600}
+  .result.crit{color:var(--good)} .result.fumble{color:var(--blood)}
+  .rlabel{font-size:.86rem;flex:1;min-width:0}
+  .rlabel b{font-family:var(--serif)}
+  .rlabel small{display:block;color:var(--muted);font-family:var(--mono);font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history{display:flex;gap:6px;overflow-x:auto;max-width:40%}
+  .chip{font-family:var(--mono);font-size:.74rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 7px;white-space:nowrap;background:var(--panel)}
+  .toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40}
+  .toast.show{opacity:1}
+  @media(max-width:640px){.history{display:none}.brand b{font-size:1.1rem}.ab6{grid-template-columns:repeat(3,1fr)}}
+  .hidden{display:none!important}
+</style>
+
+<header>
+  <div class="hbar">
+    <div class="brand"><b id="brandName">GM-экран</b><span id="brandSub">выбери ваншот</span></div>
+    <div class="htools">
+      <div class="advsel"><label for="advSel">Ваншот</label><select id="advSel"></select></div>
+      <div class="dice" id="diceTray">
+        <input id="dieCount" type="number" value="1" min="1" max="20" title="сколько кубиков" aria-label="Кол-во кубиков">
+        <button data-die="4">d4</button><button data-die="6">d6</button><button data-die="8">d8</button>
+        <button data-die="10">d10</button><button data-die="12">d12</button>
+        <button class="d20" data-die="20">d20</button><button data-die="100">d100</button>
+      </div>
+      <button class="ghost" id="btnAdv" title="преимущество/помеха на бросок d20">Обычный</button>
+      <button class="ghost" id="btnTheme" aria-label="Сменить тему">◐ Тема</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" aria-selected="true" data-p="plot">Сюжет</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="best">Бестиарий</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="init">Инициатива</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="party">Партия</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="rules">Правила 5e</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="gloss">Глоссарий</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="docs">Доки</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="prompts">Промпты</button>
+  </nav>
+
+  <section role="tabpanel" id="plot">
+    <h2 class="eyebrow" id="plotTitle">Сюжет</h2>
+    <p class="lead" id="plotLead"></p>
+    <div class="flow" id="flow"></div>
+    <h2 class="eyebrow" id="endsTitle">Развязки</h2>
+    <div class="ends" id="ends"></div>
+    <h2 class="eyebrow">Быстрые подсказки</h2>
+    <div class="tips" id="tipgrid"></div>
+  </section>
+
+  <section role="tabpanel" id="best" class="hidden">
+    <h2 class="eyebrow">Бестиарий</h2>
+    <div class="filter">
+      <input id="sbFilter" placeholder="Фильтр: имя, роль…" aria-label="Фильтр">
+      <div class="chipset" id="grpChips"></div>
+    </div>
+    <div style="margin:-6px 0 12px"><button class="ghost mini" id="expandAll">Развернуть всё</button>
+      <button class="ghost mini" id="collapseAll">Свернуть</button></div>
+    <div class="sbgrid" id="sbgrid"></div>
+  </section>
+
+  <section role="tabpanel" id="init" class="hidden">
+    <h2 class="eyebrow">Трекер инициативы</h2>
+    <div class="initbar">
+      <input id="iName" placeholder="Имя" aria-label="Имя">
+      <input id="iInit" type="number" placeholder="иниц" style="width:5em" aria-label="Инициатива">
+      <input id="iHp" type="number" placeholder="HP" style="width:5em" aria-label="HP">
+      <button id="iAdd">+ Добавить</button>
+      <button class="ghost" id="iNext">Ход дальше →</button>
+      <button class="ghost" id="iClear">Очистить</button>
+    </div>
+    <div class="track" id="track"></div>
+  </section>
+
+  <section role="tabpanel" id="rules" class="hidden">
+    <h2 class="eyebrow">Напоминалка по D&amp;D 5e</h2>
+    <div class="qroll"><span style="color:var(--muted);font-size:.85rem">Быстрый бросок:</span>
+      <span>d20 +</span><input id="qMod" type="number" value="0" aria-label="Модификатор">
+      <button class="d20" id="qRoll">Бросить</button>
+      <span style="color:var(--muted);font-size:.8rem">(учитывает Преим./Помеху из шапки)</span></div>
+    <div class="tips" id="rulegrid"></div>
+  </section>
+
+  <section role="tabpanel" id="gloss" class="hidden">
+    <h2 class="eyebrow">Глоссарий</h2>
+    <div class="filter"><input id="glFilter" placeholder="Поиск по глоссарию…" aria-label="Поиск"></div>
+    <div id="glgrid" class="tips"></div>
+  </section>
+
+  <section role="tabpanel" id="docs" class="hidden">
+    <h2 class="eyebrow">Доки модуля</h2>
+    <div class="docbar" id="docbar"></div>
+    <div class="doc" id="docView"><p class="lead">—</p></div>
+  </section>
+
+  <section role="tabpanel" id="party" class="hidden">
+    <h2 class="eyebrow">Партия игроков</h2>
+    <p class="lead">Вставь текст чарника в любом виде — нейронка приведёт к формату и добавит карточку с бросками, HP и состояниями. Персонажи сохраняются в браузере.</p>
+    <div class="initbar" style="align-items:flex-start">
+      <textarea id="pcText" placeholder="Плут 3, полурослик. КД 15, HP 24. ЛОВ 16, ТЕЛ 14, ИНТ 12… Рапира +5 (1d8+3), скрытная атака 2d6. Владения спасами: ЛОВ, ИНТ…" style="flex:1;min-width:240px;min-height:70px;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);font-family:var(--sans);font-size:.9rem;resize:vertical"></textarea>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="d20" id="pcImport">Импортировать</button>
+        <button class="ghost mini" id="pcClear">Очистить всех</button>
+      </div>
+    </div>
+    <div id="pcMsg" class="kv" style="margin:0 0 10px"></div>
+    <div class="sbgrid" id="partygrid"></div>
+  </section>
+
+  <section role="tabpanel" id="prompts" class="hidden">
+    <h2 class="eyebrow">Промпты для генератора картинок</h2>
+    <div id="promptlist"></div>
+  </section>
+</div>
+
+<div id="dock"><div class="dockin">
+  <div class="result" id="rResult">—</div>
+  <div class="rlabel"><b id="rTitle">Брось кубик</b><small id="rDetail">атаки, урон и спасброски статблоков падают сюда</small></div>
+  <div class="history" id="rHistory"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var rng=function(n){return Math.floor(Math.random()*n)+1;};
+  var advMode="Обычный";
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function mod(sc){return Math.floor((sc-10)/2);}
+  function sgn(n){return (n>=0?'+':'')+n;}
+  var ABK=[['СИЛ','S'],['ЛОВ','D'],['ТЕЛ','C'],['ИНТ','I'],['МДР','W'],['ХАР','Ch']];
+
+  /* ===== DICE ===== */
+  function rollN(n,f){var a=[],s=0,i;for(i=0;i<n;i++){var r=rng(f);a.push(r);s+=r;}return{rolls:a,sum:s};}
+  function parseDmg(f){var re=/(\d+)d(\d+)\s*([+-]\s*\d+)?/gi,mm,tot=0,parts=[];
+    while((mm=re.exec(String(f)))){var n=+mm[1],fc=+mm[2],md=mm[3]?parseInt(mm[3].replace(/\s/g,''),10):0,r=rollN(n,fc);
+      tot+=r.sum+md;parts.push("["+r.rolls.join(",")+"]"+(md?sgn(md):"")+" ("+n+"d"+fc+")");}
+    if(!parts.length)return{total:0,detail:String(f)};return{total:tot,detail:parts.join(" + ")};}
+  function showRoll(title,res,detail,klass){
+    var R=document.getElementById('rResult'),T=document.getElementById('rTitle'),D=document.getElementById('rDetail');
+    R.textContent=res;R.className='result'+(klass?(' '+klass):'');T.textContent=title;D.textContent=detail;
+    var h=document.getElementById('rHistory'),c=document.createElement('span');c.className='chip';
+    c.textContent=(title.length>16?title.slice(0,15)+'…':title)+': '+res;
+    h.insertBefore(c,h.firstChild);while(h.children.length>8)h.removeChild(h.lastChild);}
+  function d20(m,label){var a=rng(20),b=rng(20),pick=a,other=null;
+    if(advMode==='Преим.'){pick=Math.max(a,b);other=Math.min(a,b);}
+    else if(advMode==='Помеха'){pick=Math.min(a,b);other=Math.max(a,b);}
+    var total=pick+(m||0),klass=pick===20?'crit':pick===1?'fumble':'';
+    showRoll(label||'Проверка',String(total),'d20 ['+pick+(other!==null?('/'+other):'')+']'+(m?' '+sgn(m):'')+(advMode!=='Обычный'?(' · '+advMode):''),klass);}
+
+  /* ===== RULES (global) ===== */
+  var RULES=[
+    ["🎲 Как бросать",["<b>Проверка:</b> d20 + мод характеристики + мастерство (если владеешь) против <b>DC</b>.","<b>Атака:</b> d20 + мод + мастерство vs КД.","<b>Спасбросок:</b> d20 + мод + мастерство (спасы класса).","<b>Крит:</b> нат.20 — попадание + удвой кости урона.","<b>Преим./Помеха:</b> 2d20, больший/меньший (не суммируются)."]],
+    ["📏 Типичные DC",["<table><tr><td>Оч. легко</td><td>5</td></tr><tr><td>Легко</td><td>10</td></tr><tr><td>Средне</td><td>15</td></tr><tr><td>Сложно</td><td>20</td></tr><tr><td>Оч. сложно</td><td>25</td></tr></table>","Мастерство ур. 1–4 = <b>+2</b>."]],
+    ["🧠 Навык → характеристика",["<table><tr><td>СИЛ</td><td>Атлетика</td></tr><tr><td>ЛОВ</td><td>Акробатика, Ловк.рук, Скрытность</td></tr><tr><td>ИНТ</td><td>Анализ, История, Магия, Природа, Религия</td></tr><tr><td>МДР</td><td>Уход за жив., Проницательность, Медицина, Внимательность, Выживание</td></tr><tr><td>ХАР</td><td>Обман, Запугивание, Выступление, Убеждение</td></tr></table>"]],
+    ["❓ На что что бросать",["<b>Убедить/соврать/запугать/спеть</b> → ХАР","<b>Вспомнить факт</b> → ИНТ","<b>Обыскать</b> → ИНТ (Анализ)","<b>Заметить, чутьё лжи, лечить, следить, животные</b> → МДР","<b>Лезть/толкать, вырваться</b> → СИЛ","<b>Спрятаться, замок, стащить</b> → ЛОВ","<b>Стерпеть яд/пьянку</b> → ТЕЛ (спас)"]],
+    ["⚔️ Действия в бою",["Атака · Магия · Рывок · Отход · Уклонение · Засада · Готовность · Помощь · Поиск · Предмет","<b>Бонусное действие</b> — если что-то даёт","<b>Реакция</b> — 1/раунд","Движение + 1 взаимодействие бесплатно"]],
+    ["💀 Спасброски смерти",["d20 в свой ход: <b>10+</b> успех, <b>9−</b> провал.","3 успеха → стабилен; 3 провала → смерть.","Нат.20 → 1 HP. Нат.1 → 2 провала.","Урон по бессознательному = автопровал (крит = 2)."]],
+    ["🩹 Состояния",["<b>Лёжа:</b> помеха на атаки; в упор по нему преим.","<b>Опутан/Схвачен:</b> скор. 0 (опутан +помеха/по нему преим.).","<b>Отравлен:</b> помеха на атаки и проверки.","<b>Испуган:</b> помеха, пока видит источник.","<b>Оглушён/Парализован:</b> недееспособен.","<b>Истощение:</b> 6 уровней (1 помеха→6 смерть)."]],
+    ["🛡️ Укрытие/отдых",["Укрытие ½ → +2 КД и ЛОВ-спас; ¾ → +5; полное → нельзя целить.","Внезапность: застигнутый не действует 1-й раунд.","Короткий отдых (1 ч): Кости Хитов.","Долгий (8 ч): полное HP + ½ КХ, −1 истощение."]]
+  ];
+  (function(){var g=document.getElementById('rulegrid');RULES.forEach(function(t){var d=document.createElement('div');d.className='card';d.innerHTML='<h4>'+t[0]+'</h4><ul>'+t[1].map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>';g.appendChild(d);});
+    document.getElementById('qRoll').onclick=function(){d20(+document.getElementById('qMod').value||0,'Проверка d20');};})();
+
+  /* ======================================================================
+     ADVENTURES DATA
+     ====================================================================== */
+  var ADV={};
+
+  /* ---------- 1) ОБЛАЧНОЕ СТАДО ---------- */
+  ADV.cloud={
+    name:"Облачное Стадо", sub:"кыргызский реролл · 4×ур.3",
+    lead:"Дух-паук Геус дал коровам разум → культ режет бессмертных крылатых коней эльфов, чтобы «вернуть перья» → все эльфы прокляты слышать коров лишь как мычание → партия выбирает финал.",
+    plot:[
+      ["Таверна","Багбир-молочник Дагульт нанимает партию: угнали стадо, следы в горы. Скрывает, что призовая Бурека заговорила и ушла из ревности к жене-эльфийке."],
+      ["Л0 · Гора-Паук","Кряж, похожий на паука = спящий Геус. Корова Пеструха в балахоне; за вкусняшку идёт в маунты."],
+      ["Л1 · Дозорная юрта","Бой: Мерген + 2 крестоносца. Шальная стрела ранит Сергека — он отдаёт коня Бурчака. Лейлек даёт лор."],
+      ["Л2 · Поле проповеди","(а) Проповедь Актана; (б) спор философов «конь или корова». Умно (DC 13) → секрет: разум от Золотого Тельца."],
+      ["Л3 · Ай-Ордо","Столица юрт. Проклятие языка (эльфы слышат «мууу»). Кёк-бёрю; Карачач крадёт голову матери; Айна даёт Конский Язык."],
+      ["Л4 · Путь к вершинам","Волки-коровы («кто альфа?»), Тынч в яках, страж Ракыр (як, убить нельзя). Пройти: трофей/кумыс/бой."],
+      ["Л5 · Горный храм","Сад → Коровавый алтарь (спаси коня; жрица «перит» во 2-ю форму) → Зал Поющих Ветров (гонг разгоняет паству) → Святилище. Дожмёшь — Геус спускает Сегизаяка."]
+    ],
+    ends:[
+      ["1 · Снять проклятие + переубедить","Истинный мир. Обряд Конского Языка → эльфы слышат коров → Убеждение DC 15. Договор, крови нет."],
+      ["2 · Сломать Золотой Телец","Частичный: паства в смятении (×2 силов./гром), но вера уже в мире — отсрочка."],
+      ["3 · Спустить Сегизаяка","Кровавый: каракурт режет коров и вас. Беги с реликвией."],
+      ["4 · Вырезать культ","Быстро, но жрецы отритуалят снова, Геус повторит."],
+      ["5 · Спасти одну личность","Пеструха/Ырчы/Тынч/Бурека — увести живой. Мораль + сиквел."]
+    ],
+    tips:[
+      ["🎯 Ключевые DC",["Кумыс: <span class='dc'>ТЕЛ DC 12</span>","Философы: <span class='dc'>DC 13</span>","Обряд/Айна: <span class='dc'>DC 13</span>","Бурека: <span class='dc'>Убеждение DC 15</span>","Кёк-бёрю: 3 успеха до 3 провалов","Паук не разбудить: <span class='dc'>Скрытн. DC 15</span>"]],
+      ["🗣️ Проклятие языка",["ВСЕ эльфы (и эльф-игрок) слышат коров как мычание.","Снимает только Конский Язык.","Говорящую корову хан услышит как «мууу»."]],
+      ["🕕️ Как остановить культ",["Коров будят жрецы ритуалом где угодно.","Телец (сломан рог) — реликвия, не выключатель.","Одна корова ушла нести веру → до конца не кончить. Лучший исход: снять проклятие + переубедить Бурекy."]],
+      ["🐆 Сегизаяк — беги",["CR 5, не на убийство.","За порогом Сада не гонит — уползает в гору.","Пожиратель бьёт только NPC-коров; Пеструху держи вне 30 фт."]]
+    ],
+    prompts:[
+      ["Говорящая корова","A lone cow on a windswept Sword-Coast mountain trail, a torn scroll on its horn, mouth open speaking, wary adventurers reacting; dawn fog"],
+      ["Проповедь культа","A cult sermon in giant sunflowers: cows on hind legs, a cow-paladin with glowing horns preaching, drizzle, mournful worshipper cows, tragicomic"],
+      ["Ай-Ордо","A hidden mountain nomad city of yurts in fog, ethereal silver-eyed but feral elves, and horses that grow feathers with age (winged cloud-horses)"],
+      ["Ракыр — як-страж","A colossal ancient shaggy yak with curved horns on a rocky saddle, once an elf now cursed immortal, sorrowful wrathful eyes, frost on fur"],
+      ["Коровавый алтарь","Ancient kurgan temple, white altar heaped with carcasses incl. winged horses, a cow-priest fumbling a slaughter knife with its hoof, the horse's judging look, grim absurd"],
+      ["Святилище: Телец и паук","Marble sanctum, gilded golden calf idol with one broken horn on a red dais, a horse-sized black widow spider curled sleeping, coloured light"],
+      ["Гора-Паук Геус","A vast dusk mountain range shaped like a giant crouching spider — eight ridge-legs, domed body, silk-thread mist; tiny adventurers stare up in dread"]
+    ],
+    gloss:[
+      ["Геус · НитеСвет","Дух-паук; гора-паук. Дал коровам разум. Клич «Геус вульт!»."],
+      ["Облачное Стадо","Культ разумных коров. Воинство — Пернатые крестоносцы (символ ✚✚ два пера)."],
+      ["Мурия · Аве Мурия","Праматерь коров, что носила перья; её съели эльфы. Молитва культа."],
+      ["Проклятие языка","Все эльфы мира слышат коров как мычание. Снимает Конский Язык."],
+      ["Конский Язык","Контр-обряд: кумыс + перо булут-ат + формула. Снимает проклятие. Источники: Айна / столбы Зала / Ракыр."],
+      ["Золотой Телец","Реликвия-идол со сломанным рогом. Приз ~700–900 зм. Не выключатель культа."],
+      ["Сегизаяк","Гигантский каракурт-палач финала. Беги."],
+      ["Ракыр","Як-страж, прежде эльф. Убить нельзя."],
+      ["булут-ат","Крылатые кони эльфов, не стареют. Цель жертв культа."],
+      ["Ай-Тукум · Ак-Джайлоо · Ай-Ордо","Эльфы-кочевники · их долина · столица юрт."],
+      ["Бурека","Призовая корова, пророчица. Переубедить = обрушить культ."],
+      ["Дагульт","Багбир-молочник, наниматель. Жена-эльфийка считает его дурачком."],
+      ["Зал Поющих Ветров","Эоловы трубы + бронзовый гонг (не орган!). Гонг разгоняет коров."]
+    ],
+    docs:[{id:'ФАЗА-1_канон-и-сюжет.md',label:'Фаза 1 · Канон'},{id:'ФАЗА-2_боевой-чистовик.md',label:'Фаза 2 · Чистовик'},{id:'docs_txt/cloud.txt',label:'Сводка (рус)'}],
+    bestiary:cloudBestiary()
+  };
+
+  /* ---------- 2) SNAKES ON THE PLAINS ---------- */
+  ADV.snakes={
+    name:"Snakes on the Plains", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Безумный ангел Гнесет наделил степных змей разумом; те основали культ и режут местный скот в жертву у старого храма. Оленеводы в панике. Финал: ангел спускает Лучезарного Мангуста, что вырезает всех говорящих змей и свидетелей.",
+    plot:[
+      ["#1 Ранчо оленевода","Сергио хочет лук, чтоб перестрелять змей; сын Леон ищет свисток. Спасёшь стадо от Keen Rattlers → 2 верховых оленя в награду."],
+      ["#2 Поле подсолнухов","Kingly Cobras стоят и спорят о богословии. Умно ответишь → секрет: семена подсолнуха лечат змеиный яд. Глупо → атака."],
+      ["#3 Травяной лес","Скала с чёрным луком Rakir's Recurve — стережёт виперхок Ракыр (дуэль). Рядом Weirding Water (рука → бронзовый коготь)."],
+      ["#4 У храма","Оргия змей молится о крыльях. Чужаков приносят в жертву — но принимают обращённых. Стаи Grass Rats."],
+      ["#5 Кровавый алтарь","Гора туш; тронешь золото → 2 Red Adder Priests. Лут: блюда/подсвечники, красный мрамор."],
+      ["#6 Радужный орган","Витражи + орган; заиграешь → призраки вопят, змеи бегут 3 мин. Ловушка «обратной гравитации» (нефритовый глаз)."],
+      ["#7 Святилище Гнесета","Парящая пирамида, золотой мангуст. Ангел: «опыт окончен» → Лучезарный Мангуст режет всех. Приз: мангуст 2000 зм — если унесёшь ноги."]
+    ],
+    ends:[
+      ["Переспорить/обратиться","Пролезть в святилище миром через богословие змей."],
+      ["Разбудить Мангуста","Ангел сам зачистит змей; беги от мангуста с золотом."],
+      ["Вырезать культ","Быстро; но причина (ангел) остаётся."],
+      ["Забрать лук/сокровища","Rakir's Recurve, золотой мангуст — награда смелым."]
+    ],
+    tips:[
+      ["🎯 DC",["Богословие кобр: <span class='dc'>умный ответ</span> → секрет.","Sacred Fang: <span class='dc'>ЛОВ DC 15</span> или слеп+ничком.","Яд змей: <span class='dc'>ТЕЛ DC 13</span>."]],
+      ["🐍 Суть",["Разумны только змеи (ангел так решил).","Семена подсолнуха = антидот змеиного яда.","Ракыр ненавидит и Закон, и Хаос — и всех змей."]],
+      ["🦡 Мангуст — беги",["Финальный палач ангела, режет всех говорящих змей и свидетелей.","Хватай золотого мангуста (2000 зм) и уходи."]]
+    ],
+    prompts:[
+      ["Философы-змеи","Man-sized cobras standing upright in a sunflower meadow debating theology, glowing runes, weird solemn mood"],
+      ["Виперхок Ракыр","A 6-foot bronze-feathered raptor with hatchet beak, noble and haughty, perched on a black bow atop a tall rock"],
+      ["Святилище ангела","A floating white pyramid over a red dais, a solid gold mongoose statue, mad angel presence, radiant light through stained glass"]
+    ],
+    gloss:[
+      ["Гнесет","Безумный ангел, «хранитель тайного знания»; дал змеям разум ради опыта."],
+      ["Kingly Cobra","Кобры-философы; спорят о богословии, знают про семена-антидот."],
+      ["Red Adder Priest","Рой змей в рясе (CR 3); фанатик, Sacred Fang слепит."],
+      ["Виперхок Ракыр","Падший паладин-раптор (CR 2); чтит честь, стережёт лук, ест змей."],
+      ["Лучезарный Мангуст","Слуга ангела; финальный палач. Золотой (2000 зм)."],
+      ["Rakir's Recurve","Легендарный чёрный лук на скале; забрать — одолев Ракыра."]
+    ],
+    docs:[{id:'docs_txt/snakes.txt',label:'Модуль (рус, текст)'}],
+    bestiary:snakesBestiary()
+  };
+
+  /* ---------- 3) WILLOWBY HALL ---------- */
+  ADV.willowby={
+    name:"The Waking of Willowby Hall", sub:"Questing Beast · ур.3 · OSR-lite",
+    src:"pdfcoffee.com_the-waking-of-willowby-hall (Ben Milton / Questing Beast)",
+    lead:"Партия только что украла у облачного гиганта Bonebreaker Tom его гусыню Милдред (несёт золотые яйца) и удирает в проклятый особняк Уиллоуби-Холл. Гигант ломится следом, размахивая благословенным колоколом — а от звона колокола сам особняк «просыпается» и звереет.",
+    plot:[
+      ["Погоня","Гигант гонится за партией через Репный Холм, круша всё колоколом. Хочет гусыню обратно — вернёшь Милдред, он уйдёт."],
+      ["Уиллоуби-Холл","Заброшенный особняк с дурной славой. Партия прячется тут — но каждый удар колокола ломает один из 12 сигилов."],
+      ["Пробуждение дома","Сигилы бьются → дом из «Спящего» становится «Беспокойным», потом «Проснувшимся»: комнаты горят, полы рушатся, оживают скелеты, чучела, призраки."],
+      ["Обитатели","Некромант Элиас Фенвик (командует скелетами), призрак Лавиния Колдуотер (знает Внутреннее святилище), лакей-призрак Горацио, ожившая сова-медведь."],
+      ["Развязка","Пережить хаос трёх сил (гигант снаружи, дом изнутри, гусыня-провокатор). Вернуть/удержать Милдред, сбежать или усмирить дом."]
+    ],
+    ends:[
+      ["Вернуть Милдред гиганту","Bonebreaker Tom уходит довольный — минус одна сила."],
+      ["Успокоить дом","Не звонить в колокол / увести гиганта → дом снова засыпает."],
+      ["Сбежать с золотом","Гусыня и золотые яйца — награда, если унесёшь ноги."]
+    ],
+    tips:[
+      ["🔔 Колокол = таймер",["Каждый звон = минус 1 из 12 сигилов.","4 сигила → дом Беспокойный; больше → Проснувшийся.","Гигант звонит, круша стены — часы тикают сами."]],
+      ["🪿 Гусыня-хаос",["Милдред honk-ает и будит гиганта.","Несёт золотые яйца — все её хотят.","Вернёшь гиганту — он уйдёт."]],
+      ["📐 OSR-lite (конверсия)",["Статы: HD / HP / Броня (=КД) / Мораль.","Атака ≈ d20 + бонус vs Броня; урон по оружию (обычно d6, гигант 2d10).","Мораль: провал → бежит/сдаётся."]]
+    ],
+    prompts:[
+      ["Погоня гиганта","A 30-foot cloud giant swinging a huge church bell like a flail, chasing tiny adventurers who clutch a goose, ruined English manor ahead, storm"],
+      ["Пробуждение особняка","A cursed Victorian manor waking up: fungi bursting, fountain running with blood, skeletons in plate rising from floorboards, a ghostly aristocrat"],
+      ["Милдред-гусыня","A smug white goose sitting on a pile of golden eggs, honking, chaos and fire behind it, comedic ominous"]
+    ],
+    gloss:[
+      ["Bonebreaker Tom","Облачный гигант (HD 12). Гонится за гусыней с благословенным колоколом."],
+      ["Милдред","Гусыня, несёт золотые яйца; honk будит гиганта. Причина всей заварухи."],
+      ["Элиас Фенвик","Некромант; командует скелетами. Зови «Доктор Фенвик»."],
+      ["Лавиния Колдуотер","Призрак-аристократка; невидима, знает Внутреннее святилище."],
+      ["Сигилы (12)","Печати на пилларах; звон колокола ломает по одной → дом звереет."]
+    ],
+    docs:[{id:'docs_txt/willowby.txt',label:'Модуль (рус, текст)'}],
+    bestiary:willowbyBestiary()
+  };
+
+  /* ---------- 4) DEEP CARBON OBSERVATORY ---------- */
+  ADV.dco={
+    name:"Deep Carbon Observatory", sub:"Patrick Stuart · ур.3–5 · OSR",
+    src:"pdfcoffee.com_deep-carbon-observatory-remastered (Patrick Stuart / LotFP)",
+    lead:"Прорвало древнюю плотину — долина Кэрроумор ушла под воду. Партия идёт через затопленный край, полный тонущих и отчаявшихся: спасти всех нельзя, каждый шаг — моральный выбор. Впереди — сама плотина и Обсерватория Глубокого Углерода с допотопными ужасами. Мрачный OSR-модуль.",
+    plot:[
+      ["Прорыв плотины","Стена воды снесла Кэрроумор. Кругом — тонущие семьи, обломки, трупы скота."],
+      ["Затопленные земли","Череда сцен спасения: старик с телом жены, учитель на бревне с детьми, женщина в петле… Всех не спасти — модуль давит выбором."],
+      ["Вороны (The Crows)","Банда опытных убийц-мародёров идёт тем же путём, грабя выживших. Соперники или временные союзники."],
+      ["Плотина","Древнее сооружение с тайной дверью; путь наверх к истоку."],
+      ["Обсерватория","Подводно-подземное логово безумцев прошлого и антилювианских тварей (Соляные Дриады и др.). Сокровища стоят целого состояния — если вынести."]
+    ],
+    ends:[
+      ["Пройти к Обсерватории","Добраться до цели сквозь потоп и Воронов."],
+      ["Спасти кого сможешь","Модуль про то, кем ты стал по дороге — не про победу."],
+      ["Вынести сокровища","Артефакты Обсерватории = состояние, если выживешь."]
+    ],
+    tips:[
+      ["💧 Тон и суть",["Спасти всех НЕЛЬЗЯ — это заложено.","Ресурсы под давлением: 24 ч без воды → спас или урон.","Мрачно и морально тяжело — не комедия."]],
+      ["📐 OSR (конверсия)",["Статы в Hit Dice; атака d20+HD; урон по оружию (d6).","Мораль при первом уроне и на ½ HP.","HD→CR грубо: HD ≈ CR. Точные статы — в PDF."]],
+      ["🐦‍⬛ Вороны",["Опытные убийцы, очень хитрые.","Могут ограбить, помочь или предать — по ситуации."]]
+    ],
+    prompts:[
+      ["Затопленная долина","A drowned valley after a dam break, desperate refugees clinging to debris, a grey grim flood, distant broken dam, bleak painterly"],
+      ["Вороны","A band of ruthless veteran killers in dark oilcloth cloaks picking over flood victims, cold cunning eyes, grim"],
+      ["Обсерватория","A vast antediluvian underground/underwater observatory, mad ancient machinery, eerie bioluminescence, cosmic dread"]
+    ],
+    gloss:[
+      ["Кэрроумор","Долина, затопленная прорывом плотины."],
+      ["The Crows (Вороны)","Банда убийц-мародёров; соперники партии."],
+      ["Соляные Дриады","Антилювианские твари у Обсерватории."],
+      ["Обсерватория","Древнее логово знаний и ужасов; цель пути."]
+    ],
+    docs:[{id:'docs_txt/dco.txt',label:'Модуль (рус, текст)'}],
+    bestiary:dcoBestiary()
+  };
+
+  ADV.mindless={
+    name:"Mindless Fun", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"В пещере Эхо безумная культистка Йенова приносит мозги живых в жертву космическому ужасу Хашакету. Отряд «Железные вороны» уже погиб — их мозги стали псионическими Броделингами, зовущими новых жертв в культ.",
+    plot:[
+      ["#1 Пустоши Вереска","Фиолетовые холмы; трёхглазые Doom Goats сталкивают в пропасть; с неба падают горящие обломки орбитального особняка (в них Mystwood Knife); у статуи — святыня (Прудо Ловкий)."],
+      ["#2 Пещера Эхо","Эхо усиливает звук — громкий шум обрушивает камни; у трупа козопаса Bell of Summon Goats; из рога капает золотой мёд (weirding water — видеть эмоции как ауры)."],
+      ["#3 Зеркальный омут","Ползком по ледяной воде; Spirit Leeches присасываются; ушедшего под воду атакует Axehead Axolotl. Трофей: Axolotl Axe."],
+      ["#4 Узкая лестница","Скользкие ступени у обрыва; серебряное копьё в стене (при извлечении 1d6 Aether Eels); на стене — перепуганная сквайр Берил. Трофей: Singing Spear."],
+      ["#5 Капающий собор","Идол улитки и чаша подношений; без подношения 2d6 Drill Snails с потолка; руна-ловушка: DC 13 ХАР или безумная атака 1 мин."],
+      ["#6 Бойня Йеновы","Тела «Железных воронов» со вскрытыми черепами; является Йенова собрать мозги героев. Трофеи: Flute of Summon Scorpions, Amulet of Saint Helena."],
+      ["#7 Нерестовые бассейны","Четыре бассейна золотых огней; выходят четыре Broodling, зовущие поклониться Хашакету — за каждые 4 жертвы дают псионическую способность."]
+    ],
+    ends:[
+      ["Отказ и бой","Уничтожить Броделингов и/или убить Йенову, уйти без сделки с Хашакетом."],
+      ["Сделка с Хашакетом","Герой жертвует мозг(и), получает псионику — но становится слугой культа."],
+      ["Побег","Уйти, не тронув бассейны — угроза остаётся на будущее."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Стандартный DC в модуле — 13.",
+      "Broodling иммунен к обычным атакам, психике, страху и очарованию — нужна магия/хитрость.",
+      "Подношение в чашу собора избавляет от боя с Drill Snails.",
+      "Йенова не убивает сразу — ей нужны мозги, это зацепка для переговоров."
+    ]]],
+    prompts:[
+      ["Огненный дождь над пустошью","A violet hillside at dusk, three-eyed black goats grazing near a ravine, flaming debris of a shattered orbital manse crashing from an overcast sky, a vampire's skull among the wreckage, dark fantasy"],
+      ["Бойня Йеновы","A cave chamber lit by golden floating lights, four adventurers impaled on bloody stalagmites with skull-tops removed, a masked zealous cultist emerging from a dark tunnel, eerie dark fantasy"],
+      ["Нерестовые бассейны","Four shallow glowing pools in a cavern, pale bone-white human brains crawling on red chitinous crab legs, golden eerie light on wet stone, cosmic horror"]
+    ],
+    gloss:[
+      ["Хашакет","Космический ужас, которому Йенова приносит мозги ради эльдрич-сил."],
+      ["Йенова","Безумная культистка-затворница из пещеры Эхо, охотится за мозгами."],
+      ["Broodling","Мозг на крабьих ногах — жертва Хашакета; псионик, неуязвим для физ. атак."],
+      ["Iron Ravens","Отряд, убитый Йеновой до начала; тела в локации #6."],
+      ["Weirding Water","Малая порция жидкого Хаоса; разовая мутация, затем исчезает."]
+    ],
+    docs:[{id:'docs_txt/mindless.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Нежить',n:"Aether Eel",role:"эфирный змей, ест воспоминания",cr:"CR 1 (200 XP)",ac:13,hp:10,sp:"30, полёт 30",ini:4,pb:2,
+       A:{S:4,D:18,C:10,I:4,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:6,d:"2d6",t:"психический",note:"после 3-го укуса за день цель навсегда забывает близкого/навык (на выбор ДМ)"}],
+       abil:["Иммунитет к немагическим атакам","Летает, эфирный (Tiny undead)"]},
+      {grp:'Твари',n:"Axehead Axolotl",role:"земноводная тварь с черепом-топором",cr:"CR 1 (200 XP)",ac:14,hp:25,sp:"30",ini:0,pb:2,
+       A:{S:14,D:10,C:12,I:4,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:4,d:"2d6",t:"рубящий",note:"уничтожает предмет одежды или деревянный предмет"}],
+       abil:["Иммунитет к холоду","Регенерация 1d6 ПЗ/раунд, пока ПЗ > 0"]},
+      {grp:'Аберрации',n:"Broodling",role:"мозг-жертва Хашакета на крабьих ногах",cr:"CR 2 (450 XP)",ac:15,hp:20,sp:"40",ini:0,pb:2,
+       A:{S:6,D:10,C:10,I:16,W:10,Ch:10},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Бросок камня (телекинез)",h:6,d:"1d6",t:"дробящий"}],
+       abil:["Иммунитет к психике, очарованию, страху и физ. атакам","Гул: все в 30 фт — DC 13 ХАР или теряют связь с реальностью на 1 раунд"]},
+      {grp:'Твари',n:"Doom Goat",role:"трёхглазый козёл-толкач",cr:"CR 1/4 (50 XP)",ac:12,hp:10,sp:"40",ini:2,pb:2,
+       A:{S:12,D:14,C:10,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Таран",h:4,d:"2d6",t:"дробящий"}],
+       abil:["Иммунитет к очарованию","Сталкивает жертв в пропасть"]},
+      {grp:'Твари',n:"Spirit Leech",role:"эфемерная пиявка жизненной силы",cr:"CR 0 (10 XP)",ac:12,hp:5,sp:"20",ini:0,pb:2,
+       A:{S:2,D:10,C:10,I:2,W:6,Ch:6},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Присасывание",h:2,d:"",t:"—",note:"присосавшись — движение и урон цели вдвое ниже, пока не снять (действие); далее 1 психич./раунд"}],
+       abil:["Иммунитет к психике, очарованию, страху"]},
+      {grp:'Твари',n:"Drill Snail",role:"улитка, падает на голову с потолка",cr:"CR 0 (10 XP)",ac:8,hp:1,sp:"10",ini:-4,pb:2,
+       A:{S:2,D:2,C:6,I:2,W:6,Ch:6},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Сверление",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ или урон+падение; попадание — ещё DC 13 ТЕЛ или ничком"}],
+       abil:["Бессмысленная; на земле грызёт упавшего по 1 ПЗ/раунд"]},
+      {grp:'NPC',n:"Yenova",role:"безумная культистка Хашакета",cr:"CR 2 (450 XP)",ac:17,hp:50,sp:"30",ini:2,pb:2,
+       A:{S:10,D:14,C:16,I:10,W:12,Ch:14},sv:[],skills:"—",senses:"пасс. 11",langs:"Общий",
+       atk:[{name:"Безумное касание",h:4,d:"2d6",t:"психический",note:"мультиатака: две за ход"}],
+       abil:["Иммунитет к страху и очарованию","Эльдрич-вой: слышащие — DC 13 ХАР или засыпают в кошмаре, 1d6 психич./раунд сна (кошмары навсегда)"]}
+    ]
+  };
+
+  ADV.giants={
+    name:"There Might Be Giants", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Отряд графа Виглафа некогда сковал бессмертного великана Гриндалока под горами Джоро. Каждые 33 года рой шрайклингов слетается кормиться на его нетленном теле, и великан в ярости сотрясает горы — а в его животе всё ещё торчит меч «Дирджинг».",
+    plot:[
+      ["#1 На горной лестнице","Тропа по обрыву, валуны; девять статуй воинов графа Виглафа; из их каменных ртов вырывается Shrikeling Swarm."],
+      ["#2 Столпы Кота Моны","77 гигантских мечей вдоль тропы; град бьёт по мечам (разговор невозможен); из засады три Joro Ogre. Трофей: Titan Bone Maul."],
+      ["#3 Смердящая пещера","Полусъеденный кентисавр; в потолке спит Kyraptor (будит шум); эльдрич-алтарь с маской Раджата (живые волосы, душат Законопослушных)."],
+      ["#4 Зеркальный омут","Тихая вода; со дна поднимаются три Drowned Troll. Трофей: ржавые копья, Troll Blood."],
+      ["#5 Костяной туннель","Проход из рёбер; касание — тряска, падение выпускает 1d6 Ropeworm; серебряный кубок с weirding water (превращает в Brakken, иммун к рубящему)."],
+      ["#6 Гнездовье шрайклингов","Тысячи бело-летучих мышей; три Shrikeling Swarm; взрывоопасный гуано; ловушка-кинжал с иридесцентной слизью (иммун к оружию, слаба к магии). Трофеи: Holy Tetrium Shield, Mountain Goat Boots."],
+      ["#7 Темница Гриндалока","Истощённый великан прикован; в животе золотой меч Дирджинг; шрайклинги гложут плоть; он умоляет обезглавить его — единственный способ убить."]
+    ],
+    ends:[
+      ["Обезглавить","Меч Дирджинг разрушает Гриндалока и рассыпается; угроза землетрясений исчезает."],
+      ["Оставить прикованным","Разъярённый великан сотрясает гору — партии приходится бежать."],
+      ["Освободить","Гриндалок вырывается на поверхность — неконтролируемая угроза округе."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Стандартный DC — 13; убить Гриндалока можно ТОЛЬКО мечом Дирджинг.",
+      "Kyraptor просыпается от любого громкого звука.",
+      "Гуано шрайклингов взрывоопасно — источник огня в тесноте.",
+      "Weirding water превращает выпившего в Brakken — тактика против рубящего оружия."
+    ]]],
+    prompts:[
+      ["Статуи воинов на лестнице","A steep mountain switchback carved with nine weathered warrior statues, boulders crashing down a cliff, a swarm of pale hairless bats bursting from the statues' open stone mouths, epic fantasy landscape"],
+      ["Зеркальный омут троллей","A vast cavern with a perfectly still mirror pool reflecting cruel stalactites, three pale slender giants with pruny gray skin rising silently from the water, cold blue cave light"],
+      ["Темница Гриндалока","An 18-foot emaciated giant chained to a stone slab underground, a golden longsword embedded in his bleeding stomach, tiny white bat-creatures gnawing his flesh, tragic dark fantasy"]
+    ],
+    gloss:[
+      ["Гриндалок","Бессмертный великан, скованный графом Виглафом; каждые 33 года сотрясает горы."],
+      ["Граф Виглаф","Легендарный герой, заковавший Гриндалока; его меч Дирджинг остался в теле."],
+      ["Dirging","Золотой меч, обезглавливающий любую цель по слову; после использования разрушается."],
+      ["Shrikeling","Летучая мышь-паразит; кормится и плодится на теле Гриндалока роями."],
+      ["Joro Ogre","Горный огр-засадник, атакует валунами и обвалами."]
+    ],
+    docs:[{id:'docs_txt/giants.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Твари',n:"Kyraptor",role:"мышь размером с лошадь, под сталактит",cr:"CR 1/2 (100 XP)",ac:13,hp:25,sp:"60 полёт",ini:3,pb:2,
+       A:{S:14,D:16,C:10,I:4,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Укус",h:4,d:"2d6",t:"дробящий"}],
+       abil:["Крик: слышащие — DC 13 ТЕЛ или ничком и оглушены 1 раунд"]},
+      {grp:'Твари',n:"Shrikeling Swarm",role:"рой белых мышей-лампрей",cr:"CR 1 (200 XP)",ac:12,hp:25,sp:"30 полёт",ini:2,pb:2,
+       A:{S:6,D:14,C:10,I:4,W:12,Ch:4},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Урон роя",h:null,d:"1d6",t:"колющий",note:"внутри роя — DC 13 ЛОВ или урон"},{name:"Плевок гуано",h:null,d:"1d6",t:"звуковой",note:"DC 13 ЛОВ; взрывное гуано"}],
+       abil:["Иммунитет к немагическому оружию","Слабость к громкому звуку и яркому свету"]},
+      {grp:'Твари',n:"Ropeworm",role:"бескостный паразит, грызёт спящих",cr:"CR 1/4 (50 XP)",ac:10,hp:10,sp:"20",ini:1,pb:2,
+       A:{S:10,D:12,C:10,I:4,W:8,Ch:4},sv:[],skills:"—",senses:"пасс. 9",langs:"—",
+       atk:[{name:"Укус",h:2,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или вгрызается 1d6/раунд; через 3 раунда внутри, цель −3 ко всему"}],
+       abil:["Прячется в земле, вылезает на спящих"]},
+      {grp:'Боссы',n:"Grindalok",role:"скованный бессмертный великан",cr:"CR 7 (2900 XP)",ac:15,hp:100,sp:"40",ini:2,pb:3,
+       A:{S:20,D:14,C:20,I:10,W:12,Ch:8},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Удар",h:9,d:"4d6",t:"дробящий",note:"досягаемость 10 фт"},{name:"Валун",h:9,d:"6d6",t:"дробящий",note:"дальн. 60 фт"}],
+       abil:["Бессмертен — исцеляется от любых ран; убить только обезглавив мечом Дирджинг"]},
+      {grp:'Великаны',n:"Drowned Troll",role:"слепой слизистый тролль",cr:"CR 5 (1800 XP)",ac:15,hp:75,sp:"30",ini:1,pb:3,
+       A:{S:18,D:12,C:20,I:6,W:8,Ch:6},sv:[],skills:"—",senses:"пасс. 9",langs:"—",
+       atk:[{name:"Укус",h:5,d:"3d6",t:"колющий",note:"мультиатака: две за ход"},{name:"Удар",h:7,d:"2d6",t:"дробящий",note:"DC 13 СИЛ или ничком"}],
+       abil:["Иммунитет к холоду; слеп","Под водой регенерирует 1d6 ПЗ/раунд; на суше мёртвый не оживает"]},
+      {grp:'Великаны',n:"Joro Ogre",role:"горный огр-засадник",cr:"CR 2 (450 XP)",ac:15,hp:40,sp:"40",ini:0,pb:2,
+       A:{S:18,D:10,C:16,I:6,W:8,Ch:6},sv:[],skills:"—",senses:"пасс. 9",langs:"—",
+       atk:[{name:"Молот",h:6,d:"3d6",t:"дробящий",note:"досягаемость 10 фт"},{name:"Валун",h:5,d:"4d6",t:"дробящий",note:"дальн. 30 фт"}],
+       abil:["Использует ландшафт для засад и обвалов"]}
+    ]
+  };
+
+  ADV.spores={
+    name:"Make Love Not Spores", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Из провала в лесу лезут микотические зомби в грибах — они не нападают, а обнимают живых, заражая спорами. Спасение — сжечь Микотический Разлив в глубине провала, что освободит и заражённых.",
+    plot:[
+      ["#1 Грибные леса","Дубы рвутся как сыр; полусгнившие звери в грибах бродят и хотят обняться (заражают дыханием); в миске weirding water (вес/плотность тела вдвое ниже)."],
+      ["#2 Пасть провала","Тоннель под лес; безногий скелет в грибной бахроме ползёт к героям; выскакивает Rabid Boar, жрёт скелет и атакует; в хижине припасы."],
+      ["#3 Мшистые руины","Домик охотника на боку, рой мух; трофейные головы зверя в грибах оживают и атакуют спорами; мох съедобен."],
+      ["#4 Лишайниковые колонны","Оранжевые трубы до потолка; Shroom Shepherd пытается обнять и заразить; при ранении зовёт 2d6 Toddling Toadstool."],
+      ["#5 Мутная заводь","Красные водоросли; две дюжины Toddling Toadstool катаются; под водой два Sparkling Eel. Добыча: изумруды, Alchemist Mask."],
+      ["#6 Гнилая пещера","Жёлтые пауки прядут серебряный шёлк; путь блокируют четыре Shroom Soldier; тело чумной докторши Кармиллы с эликсирами и жидким огнём. Трофеи: Toadstool Hat, Psychedelic Silk."],
+      ["#7 Микотический Разлив","Три гигантских языка грибной плоти в дымке спор; предлагает стать бессмертным Спор-народом или давит несогласных. Трофей: Staff of Ruin."]
+    ],
+    ends:[
+      ["Слияние","Герой принимает споры, становится Спор-народом — воскресает и отращивает конечности, но ненавидим разумными."],
+      ["Уничтожение Разлива","Сжечь Разлив (огонь — двойной урон) — все заражённые исцеляются."],
+      ["Бегство","Уйти, не тронув Разлив — зомби-апокалипсис продолжается."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Стандартный DC — 13; в комнате Разлива каждый раунд DC 10 ТЕЛ или заражение.",
+      "Заражение проявляется через 2d6 минут; лечится только уничтожением Разлива.",
+      "Огонь наносит Разливу двойной урон — ключевая тактика.",
+      "Alchemist Mask (#5) даёт иммунитет к спорам — найти до финала."
+    ]]],
+    prompts:[
+      ["Грибные леса","A loamy forest with oaks torn apart like cheese, half-decayed woodland animals covered in oozing orange mushrooms shambling gently toward the viewer, eerie bioluminescent fungal glow, unsettling whimsical horror"],
+      ["Мутная заводь","A cold underground pond covered in red algae mats, tiny one-foot mushroom creatures giggling and riding the rafts, a sparking electric eel beneath the surface, whimsical dark fantasy"],
+      ["Микотический Разлив","A cavern wall covered in three monstrous 20-foot tongues of orange fungal flesh, drifting spores in the air, dim light, seductive grotesque cosmic horror"]
+    ],
+    gloss:[
+      ["Микотический Разлив","Финальный босс — три грибных языка, источник заражения."],
+      ["Спор-народ","Заражённые Разливом грибные гуманоиды, служат ему."],
+      ["Weirding Water","Малая порция жидкого Хаоса; тут — вес/плотность тела вдвое ниже."],
+      ["Кармилла","Мёртвая чумная докторша (#6); её маска (см. #5) даёт иммунитет к вдыхаемому."]
+    ],
+    docs:[{id:'docs_txt/spores.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Боссы',n:"Mycotic Sprawl",role:"три грибных языка — источник заражения",cr:"CR 4 (1100 XP)",ac:15,hp:90,sp:"0",ini:1,pb:2,
+       A:{S:18,D:12,C:14,I:8,W:14,Ch:10},sv:[],skills:"—",senses:"пасс. 12",langs:"—",
+       atk:[{name:"Удар языком",h:6,d:"4d6",t:"дробящий",note:"досягаемость 15 фт; мультиатака: три за ход"}],
+       abil:["Уязвим к огню (двойной урон)","Каждый язык — 30 ПЗ; уничтожение сегмента снимает одну атаку","Каждый раунд в комнате — DC 10 ТЕЛ или заражение","Призывает Toddling Toadstool и Shroom Soldier на защиту"]},
+      {grp:'Растения',n:"Shroom Shepherd",role:"мертвец в грибах, обнимает и заражает",cr:"CR 1 (200 XP)",ac:10,hp:20,sp:"20",ini:-1,pb:2,
+       A:{S:8,D:8,C:14,I:8,W:14,Ch:10},sv:[],skills:"—",senses:"пасс. 12",langs:"—",
+       atk:[{name:"Поцелуй",h:0,d:"",t:"—",note:"DC 13 ТЕЛ или заражение спорами (симптомы через 2d6 мин)"}],
+       abil:["При первом ранении зовёт 2d6 Toddling Toadstool"]},
+      {grp:'Твари',n:"Rabid Boar",role:"крупный клыкастый кабан",cr:"CR 1/4 (50 XP)",ac:12,hp:15,sp:"40",ini:0,pb:2,
+       A:{S:12,D:10,C:12,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Клык",h:3,d:"2d6",t:"колющий",note:"DC 13 ТЕЛ или цель бесится и бьёт ближайшего наугад"}],
+       abil:["Агрессивен, территориален"]},
+      {grp:'Растения',n:"Shroom Soldier",role:"мускулистый мертвец-солдат в грибах",cr:"CR 2 (450 XP)",ac:12,hp:35,sp:"30",ini:0,pb:2,
+       A:{S:12,D:10,C:14,I:12,W:14,Ch:10},sv:[],skills:"—",senses:"пасс. 12",langs:"—",
+       atk:[{name:"Удар кулаком",h:3,d:"2d6",t:"дробящий",note:"DC 13 ТЕЛ или заражение (через 2d6 мин)"}],
+       abil:["Быстрый, жестокий"]},
+      {grp:'Твари',n:"Sparkling Eel",role:"электрический угорь",cr:"CR 1/2 (100 XP)",ac:12,hp:5,sp:"30 плавание",ini:3,pb:2,
+       A:{S:2,D:16,C:10,I:2,W:10,Ch:2},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:5,d:"1d6",t:"колющий"}],
+       abil:["Электрошок: все в 20 фт — DC 11 ТЕЛ или ничком и недееспособны 1 раунд"]},
+      {grp:'Растения',n:"Toddling Toadstool",role:"фут ростом ходячий грибок",cr:"CR 0 (10 XP)",ac:10,hp:5,sp:"20",ini:-2,pb:2,
+       A:{S:6,D:6,C:10,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Удар",h:0,d:"",t:"дробящий",note:"1 урон"}],
+       abil:["Мёртвая дымка: при гибели — все в 5 фт DC 13 ТЕЛ или опьянение 1d6×10 мин"]},
+      {grp:'Растения',n:"Trophy Head",role:"чучело головы в грибах",cr:"CR 1/4 (50 XP)",ac:10,hp:10,sp:"10",ini:0,pb:2,
+       A:{S:8,D:10,C:14,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:1,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или заражение (через 2d6 мин)"}],
+       abil:["Неуклюжая, заразная"]}
+    ]
+  };
+
+  ADV.diamonds={
+    name:"Diamonds for the Axing", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Слепая Frostback Gorilla бесчинствует на леднике Биттерок с легендарным алмазным топором королевы Сигрун и порой обрушивает лавины на деревни. Гориллу изводят осы, желающие устроить гнездо в полом топоре.",
+    plot:[
+      ["#1 Ледник Биттерок","Слепящий снег; во льду мерцают мёртвые лица. Призраки Сигрун просят вернуть топор у гориллы; слышен осиный гул; следы блестят алмазной пылью. Эльдрич-алтарь Qothor (сделка: иммунитет к холоду/огню, но кошмары о замерзающих близких)."],
+      ["#2 Талый жёлоб","Тоннель вниз, борозды со следами топора; спуск гасит факелы; мёртвая охотница Aguta, убитая осами. Трофеи: плащ, кирка, лук с 1d6 стрел, Ivory Snow Goggles, 18 зм."],
+      ["#3 Клыкастая расселина","Ледяные клинки над пропастью, шаткий мост; в сосульках 2d6 алмазов (50 зм); атакует рой Wasp Drone; вмёрзший корабль с сундуком 303 зм."],
+      ["#4 Синяя пещера","Сапфировый лёд; вмёрзли кит и кальмар, стонут; песня кита усыпляет и топит; красные кальмарчики грызут лёд — если боль велика, кит вырвется."],
+      ["#5 Белые гейзеры","Отверстия бьют ледяными вихрями (ранение/замедление/слепота/немота/паралич); атакует рой Wasp Warrior; в стене тела с Spearmint Amulet."],
+      ["#6 Хрустальный лабиринт","Ледяные панели-лабиринт слепят; розовые пятна ведут (полчаса), стерегут два Unfrozen Caveman; можно ломать стены напрямик с уроном."],
+      ["#7 Ледяное логово","Вход завален снегом от ос; израненная горилла с топором; расчистишь снег — рой Wasp Torturer врывается за топором. Под снегом: Sigrun's Helm и Breastplate."]
+    ],
+    ends:[
+      ["Топор возвращён","Отобрать Sigrun's Greataxe у гориллы/ос; лавины прекращаются, призраки Сигрун упокоены."],
+      ["Горилла усмирена/убита","Отчаянную гориллу трудно урезонить; осы разгромлены или переносят гнездо."],
+      ["Сделка с Qothor","Кожа/глаза синеют, иммунитет к холоду/огню, но каждую ночь видения о замерзающих близких."],
+      ["Лавины продолжаются","Топор не найден — горилла и дальше пугает деревни лавинами."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Roar гориллы: DC 13 ЛОВ, падают лёд/камни, 2d6 всем в зоне.",
+      "Урон роя ос внутри — DC 13 ЛОВ, 1d6.",
+      "Wasp Torturer: DC 13 ТЕЛ или тратишь ход, вынимая жало (1d6 яда).",
+      "Под снегом Ice Den — Шлем и Нагрудник Сигрун (по 1000 зм).",
+      "Алтарь Qothor — сделка необратима без снятия проклятия."
+    ]]],
+    prompts:[
+      ["Ледяное логово","A massive white gorilla covered in jagged icicles lying wounded on bloodstained snow in a frigid ice cave, clutching a glittering diamond greataxe, a swarm of white wasps pouring in through the entrance, cold blue lighting"],
+      ["Хрустальный лабиринт","A vast gloomy ice cavern of clear ice panes refracting dazzling iridescent light, a faint pink trail winding through, two hulking frozen cavemen lurking in the mist, fantasy concept art"]
+    ],
+    gloss:[
+      ["Queen Sigrun","Королева-воительница, чей алмазный топор достался горилле."],
+      ["Qothor the Coldest Vision","Древняя сущность в леднике, предлагает опасную сделку."],
+      ["Frostback Gorilla","Слепая горилла-инструментальщик с топором Сигрун."],
+      ["Wasp Drone/Warrior/Torturer","Три касты роя белых ос, хотят гнездо в полом топоре."]
+    ],
+    docs:[{id:'docs_txt/diamonds.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Ледник',n:"Frostback Gorilla",role:"финальный босс с алмазным топором",cr:"CR 5",ac:12,hp:100,sp:"40",ini:2,pb:3,
+       A:{S:20,D:14,C:16,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Diamond Axe",h:6,d:"4d6",t:"рубящий",note:"мультиатака: две за ход"},{name:"Thrown Icicle",h:4,d:"2d6",t:"колющий",note:"дальн. 60 фт"},{name:"Roar",h:null,d:"2d6",t:"дробящий",note:"DC 13 ЛОВ, лёд/камни на всех в зоне"}],
+       abil:["Иммунитет к холоду","Мультиатака: две атаки","Tool User — использует любой инструмент/оружие"]},
+      {grp:'Ледник',n:"Unfrozen Caveman",role:"дикарь из пещеры/лабиринта",cr:"CR 2",ac:12,hp:50,sp:"20",ini:0,pb:2,
+       A:{S:16,D:10,C:16,I:8,W:12,Ch:8},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Club",h:4,d:"2d6",t:"дробящий"}],
+       abil:["Иммунитет к холоду","Слабость: пугается огня"]},
+      {grp:'Ледник',n:"Wasp Drone (рой)",role:"любопытный рой, добывает алмазную пыль",cr:"CR 1",ac:12,hp:20,sp:"20 полёт",ini:1,pb:2,
+       A:{S:2,D:12,C:10,I:2,W:6,Ch:2},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Swarm Damage",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ внутри роя"}],
+       abil:["Иммунитет к холоду и обычному оружию","Отгоняется дымом и огнём"]},
+      {grp:'Ледник',n:"Wasp Warrior (рой)",role:"агрессивный страж гнезда",cr:"CR 1",ac:13,hp:30,sp:"20 полёт",ini:1,pb:2,
+       A:{S:2,D:12,C:10,I:2,W:6,Ch:2},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Swarm Damage",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ внутри роя"}],
+       abil:["Иммунитет к холоду и обычному оружию","Загоняет чужаков к ловушкам"]},
+      {grp:'Ледник',n:"Wasp Torturer (рой)",role:"садистский рой, штурмует логово",cr:"CR 2",ac:14,hp:40,sp:"20 полёт",ini:1,pb:2,
+       A:{S:2,D:12,C:10,I:2,W:6,Ch:2},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Swarm Damage",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ внутри роя"},{name:"Swarm Cruelty",h:null,d:"1d6",t:"яд",note:"DC 13 ТЕЛ при укусе, иначе тратишь ход вынимая жала"}],
+       abil:["Иммунитет к холоду и обычному оружию","Отгоняется дымом и огнём"]}
+    ]
+  };
+
+  ADV.drowning={
+    name:"Drowning in Gold", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Морская ведьма Ursaloth похитила водорослями 12 золотых слитков с судна Orca Delima у деревни Anglerhead; моряки готовы обвинить невинных рыбаков. Смотритель маяка Nerrick тайно помогает ведьме — влюблён в её пение.",
+    plot:[
+      ["#1 Деревня Anglerhead","Каменные хижины; рыбаки Thom и Alana клянутся в невиновности; моряки Morgan и Dermot обвиняют деревню и готовы к драке."],
+      ["#2 Розовый коралловый пляж","Красные водоросли собирают золотую пыль и несут к #7; 1d6 Kettle Crabs гонят девочку Marina (слышала пение с Dwindle Cliff). Обыск: Sea-Glass Dagger."],
+      ["#3 Корабль Orca Delima","Ког на якоре, 18 матросов; в трюме 38 слитков, медь, какао; на слитках водоросли, в корпусе трещина (за 1d6 мин водоросли утащат остаток золота). В черепе — weirding water (жабры). Капитан Flintok хочет повесить кухарку Molly Bones."],
+      ["#4 Старый маяк","Снаружи пикирует Dire Pelican. Внутри Nerrick читает морские поэмы; по ночам снизу прекрасное пение. Секрет: Nerrick гасит Sapphire Lamp, заманивая корабли. Сокровище: Sapphire Lamp."],
+      ["#5 Подножие Dwindle Cliff","Под водой золото ведёт к #6; соляная статуя — призрак капитана Skarlet Vane вызывает одного на дуэль (победа — проход к #7, поражение — в море). Обыск: Black Pearl Cutlass."],
+      ["#6 Приливный тоннель","Течение бьёт о кораллы; кровь привлекает 1d6 Jellysharks; 39 зм. Эльдрич-алтарь Viathan (сделка: не нужно дышать, но кожа в рыбьей чешуе)."],
+      ["#7 Позолоченные могилы","Затопленная пещера, 13 груд золота. Ursaloth (щупальца, искренняя) требует уйти — не торгуется. Касание золота поднимает 2d6 Coral Crone. Сокровища: 3d6×1000 зм, украшения, слитки, Jade Ring."]
+    ],
+    ends:[
+      ["Мир восстановлен","Доказать невиновность рыбаков; истинный вор — ведьма и её водоросли, резня предотвращена."],
+      ["Nerrick разоблачён","Смотритель уличён в гашении Sapphire Lamp ради ведьмы."],
+      ["Сделка с Viathan","Не нужно дышать, но кожа покрывается рыбьей чешуёй."],
+      ["Судьба золота","Забрать сокровища ценой боя с Coral Crones и гнева Ursaloth — или уйти с миром."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Coral Crone коготь: DC 13 ТЕЛ, 2d6 + потеря голоса на 2 раунда.",
+      "Jellyshark щупальца: DC 13 ЛОВ, яд; после 3 ужалений — без сознания 2 раунда.",
+      "Ursaloth Sing: DC 10 МДР или очарование (защищаешь её, пока не ранена).",
+      "Секрет: Nerrick тайно гасит маяк; настоящий вор золота — Ursaloth."
+    ]]],
+    prompts:[
+      ["Позолоченные могилы","An underwater flooded cave glittering with thirteen mounds of gold, a sea witch with octopus tentacle legs standing protectively among the gold, red kelp on the walls, eerie soft singing atmosphere, fantasy illustration"],
+      ["Дуэль с призраком капитана","A ghostly translucent pirate captain with drifting red hair duels a lone adventurer on a narrow stone ledge above crashing freezing waves at a cliff base, dramatic moody lighting"]
+    ],
+    gloss:[
+      ["Ursaloth","Морская ведьма-похитительница золота, влюблённая в своё пение."],
+      ["Mister Nerrick","Смотритель маяка, тайный пособник ведьмы."],
+      ["Captain Skarlet Vane","Призрак капитана, охраняет проход дуэлью."],
+      ["Viathan the Drowned Dream","Морская сущность алтаря в приливном тоннеле."],
+      ["Anglerhead","Рыбацкая деревня, чьих жителей несправедливо винят."]
+    ],
+    docs:[{id:'docs_txt/drowning.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Побережье',n:"Kettle Crab",role:"опасность на пляже",cr:"CR 1/2",ac:17,hp:10,sp:"30",ini:2,pb:2,
+       A:{S:12,D:14,C:10,I:4,W:8,Ch:4},sv:[],skills:"—",senses:"пасс. 9",langs:"—",
+       atk:[{name:"Pincer",h:3,d:"2d6",t:"рубящий"},{name:"Steam",h:null,d:"1d6",t:"огонь",note:"DC 13 ЛОВ всем в 5 фт"}],
+       abil:["Иммунитет к огню и холоду"]},
+      {grp:'Побережье',n:"Sailor",role:"матрос Orca Delima",cr:"CR 1",ac:13,hp:20,sp:"30",ini:2,pb:2,
+       A:{S:12,D:14,C:12,I:10,W:12,Ch:10},sv:[],skills:"—",senses:"пасс. 11",langs:"Общий",
+       atk:[{name:"Cutlass",h:4,d:"1d6",t:"рубящий"}],
+       abil:["Мультиатака: две атаки","Сильный пловец, не боится потери конечностей"]},
+      {grp:'Побережье',n:"Coral Crone",role:"нежить, страж золота предков",cr:"CR 1",ac:11,hp:10,sp:"30 ползком",ini:0,pb:2,
+       A:{S:16,D:10,C:16,I:4,W:8,Ch:6},sv:[],skills:"—",senses:"пасс. 9",langs:"—",
+       atk:[{name:"Claw",h:5,d:"2d6",t:"рубящий",note:"DC 13 ТЕЛ или потеря голоса на 2 раунда"}],
+       abil:["Иммунитет к яду и сну","Атакует всё живое при виде"]},
+      {grp:'Побережье',n:"Dire Pelican",role:"хищная птица у маяка",cr:"CR 1",ac:13,hp:15,sp:"60 полёт",ini:2,pb:2,
+       A:{S:14,D:14,C:14,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Beak",h:6,d:"2d6",t:"рубящий"},{name:"Scoop",h:null,d:"4d6",t:"дробящий",note:"DC 13 ЛОВ — хватает и роняет с высоты"}],
+       abil:["Жестокий, трусливый — ищет лёгкую добычу"]},
+      {grp:'Побережье',n:"Jellyshark",role:"прозрачная акула тоннеля",cr:"CR 2",ac:12,hp:15,sp:"40 плавание",ini:3,pb:2,
+       A:{S:10,D:16,C:10,I:4,W:6,Ch:4},sv:[],skills:"—",senses:"пасс. 8",langs:"—",
+       atk:[{name:"Bite",h:6,d:"2d6",t:"рубящий"},{name:"Tentacles",h:null,d:"1d6",t:"яд",note:"DC 13 ЛОВ в 5 фт; после 3 ужалений — без сознания 2 раунда"}],
+       abil:["Иммунитет к яду","Привлекается кровью"]},
+      {grp:'Побережье',n:"Skarlet Vane",role:"призрак капитана-дуэлянта",cr:"CR 2",ac:16,hp:25,sp:"30 парение",ini:3,pb:2,
+       A:{S:8,D:16,C:10,I:10,W:12,Ch:14},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Cutlass",h:5,d:"2d6",t:"рубящий"},{name:"Terror",h:null,d:"",t:"",note:"DC 13 МДР или роняешь предмет"},{name:"Breaker",h:null,d:"1d6",t:"дробящий",note:"DC 13 СИЛ, волна сбивает и −½ скорости на раунд"}],
+       abil:["Иммунитет к яду, очарованию, сну","Мультиатака: Cutlass + Terror или Breaker"]},
+      {grp:'Боссы',n:"Ursaloth",role:"морская ведьма Позолоченных могил",cr:"CR 3",ac:13,hp:50,sp:"40 плавание",ini:1,pb:2,
+       A:{S:18,D:12,C:14,I:10,W:12,Ch:12},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Tentacle",h:6,d:"2d6",t:"дробящий"},{name:"Sing",h:null,d:"",t:"",note:"DC 10 МДР или очарование: защищаешь её, пока не ранена"}],
+       abil:["Иммунитет к очарованию и холоду","Мультиатака: две атаки","3/день призывает 2 Jellysharks или 2 Kettle Crabs"]}
+    ]
+  };
+
+  ADV.burning={
+    name:"Burning Desire", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Злобные Ember Pucks убивают коз, строя из их черепов портал в гробнице Дайкая Милосердного, чтобы призвать Космического Краба... и съесть его. В пирамиде дремлет Firefox, ненавидящий Ember Pucks. Местные лишь хотят защитить коз.",
+    plot:[
+      ["#1 В пустыне","Зной; в небе силуэты; огненные муравьи на обезглавленной козе; 1d6 трусливых Vulgrane пикируют; обожжённые следы обезьян ведут к белой пирамиде."],
+      ["#2 Зал стражи","Копоть, зной из решёток (шахта 300 фт к лаве); в нишах четыре мумии в чёрных доспехах. Ловушка: упомянешь жару — четыре Mummy Warrior воспламеняются и атакуют."],
+      ["#3 Сокровищница","Сундуки золота, золотой убор с рубиновыми глазами. Ловушка: тронешь сундуки — золото в песок, убор бьёт огненными лучами по всем. Сокровище: Dajkai's Headdress."],
+      ["#4 Зал слуг","Мумии шепчут «спасите короля»; касание — взрыв углей; громкий звук будит Firefox (#6); кровавый козий след к #7; скарабей с weirding water (кожа красная маслянистая, лезешь в щель в дюйм, но Законопослушные сторонятся)."],
+      ["#5 Келья мага","Дверь-ловушка (яма со скарабеями); лиловый дым; девять костяных жезлов (касание — дым в Smoke Servant); шум будит Firefox. Сокровища: Wand of Control Fire, Wand of Control Air, Wand of Summon Scarabs."],
+      ["#6 Покои короля","Оплавленные золотые стены; опрокинутый саркофаг, мумия короля в золоте; на груде золота дремлет багровый Firefox; шум будит его; куча золота 3 тонны, 5000 зм. Тиара 1000 зм."],
+      ["#7 Кладовая","Круг козьих черепов в синем пламени — портал; шесть Ember Pucks атакуют; шум будит Firefox; скоро из портала лезет клешня Cosmic Crab и крушит пирамиду."],
+      ["#8 Дымная камера","Потайная; удушливый дым; два Mummy Warrior пронзили друг друга мечами, тлеют; касание — в пепел. Сокровище: Ruby Ring."],
+      ["#9 Шипящая камера","Потайная; тысячи чёрных скарабеев шипят; разбудишь — атакуют самую «горячую» цель (2d6/раунд), уязвимы к холоду."]
+    ],
+    ends:[
+      ["Портал уничтожен","Разрушить круг черепов / прогнать Ember Pucks до прорыва клешни Краба."],
+      ["Клешня прорывается","Промедлил — клешня Cosmic Crab вырывается и обрушивает часть пирамиды."],
+      ["Огненный лис пробуждён","Шум в #4/#5/#7 будит Firefox — бой или неожиданный союз против Ember Pucks."],
+      ["Проклятие короля не снято","Касание короля активирует ловушку с раскалённым песком; души слуг не упокоены."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Mummy Warrior при гибели: DC 13 ТЕЛ, 2d6 огня в 5 фт.",
+      "Ember Puck при гибели: DC 13 ЛОВ, 1d6 огня в 5 фт.",
+      "Smoke Servant: DC 13 ТЕЛ или жертва задыхается и теряет ход.",
+      "Любой громкий звук в #4/#5/#7 будит Firefox в #6.",
+      "Ember Pucks строят портал, чтобы призвать и СЪЕСТЬ Космического Краба."
+    ]]],
+    prompts:[
+      ["Огненный лис на золоте","A camel-sized fox wreathed in red flames sleeping atop a heap of melted gold in a golden hieroglyph-covered tomb, a mummified king tangled in gold nearby, warm dramatic firelight, fantasy illustration"],
+      ["Клешня Космического Краба","A massive dark blue chitin claw bursting through a glowing portal made of a circle of flaming goat skulls in an ancient stone chamber, smoke and dust, six small coal-monkey creatures fleeing, epic fantasy"]
+    ],
+    gloss:[
+      ["Dajkai the Merciful","Король-маг, чья гробница стала логовом Ember Pucks."],
+      ["Ember Puck","Мелкие духи-обезьяны из живого угля, строят портал из черепов."],
+      ["Firefox","Огромный дремлющий огненный лис, враг Ember Pucks."],
+      ["Cosmic Crab","Космический монстр, чью клешню призывают в #7."],
+      ["Vulgrane","Летающие ящеры-падальщики над пустыней."]
+    ],
+    docs:[{id:'docs_txt/burning.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Пустыня',n:"Ember Puck",role:"поджигатель, строитель портала",cr:"CR 1/2",ac:11,hp:20,sp:"30",ini:1,pb:2,
+       A:{S:8,D:12,C:12,I:6,W:10,Ch:10},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Ember Toss",h:2,d:"1d6",t:"огонь",note:"дальн. 30 фт"},{name:"Death Blossom",h:null,d:"1d6",t:"огонь",note:"DC 13 ЛОВ всем в 5 фт при гибели"}],
+       abil:["Иммунитет к огню"]},
+      {grp:'Пустыня',n:"Vulgrane",role:"летающий падальщик",cr:"CR 1",ac:12,hp:25,sp:"60 полёт",ini:2,pb:2,
+       A:{S:14,D:14,C:14,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Bite",h:6,d:"2d6",t:"рубящий"},{name:"Soaring Doom",h:4,d:"4d6",t:"дробящий",note:"хватает, взлетает и роняет"}],
+       abil:["Жестокий, трусливый — лёгкая добыча"]},
+      {grp:'Гробница',n:"Mummy Warrior",role:"страж-мумия в чёрных доспехах",cr:"CR 3",ac:15,hp:25,sp:"30",ini:-1,pb:2,
+       A:{S:16,D:8,C:14,I:6,W:10,Ch:12},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Flaming Scimitar",h:5,d:"2d6",t:"рубящий + 1d6 огонь",extra:"1d6",note:"мультиатака: две за ход"}],
+       abil:["Иммунитет к огню, яду, очарованию, параличу, сну","Burning Corpse: при гибели DC 13 ТЕЛ или 2d6 огня в 5 фт"]},
+      {grp:'Гробница',n:"Firefox",role:"страж покоев короля",cr:"CR 3",ac:15,hp:50,sp:"50",ini:1,pb:2,
+       A:{S:16,D:12,C:14,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Bite",h:5,d:"2d6",t:"рубящий"},{name:"Claw",h:5,d:"2d6",t:"рубящий"},{name:"Tail",h:3,d:"3d6",t:"огонь"}],
+       abil:["Иммунитет к огню","Мультиатака: две атаки","Атакует Ember Pucks при виде"]},
+      {grp:'Портал',n:"Cosmic Crab claw",role:"клешня космического ужаса",cr:"CR 5",ac:15,hp:100,sp:"10",ini:0,pb:3,
+       A:{S:20,D:10,C:16,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Pincer",h:6,d:"6d6",t:"рубящий"}],
+       abil:["Слепа, в ярости — бьёт ближайшую цель (прибл.)"]},
+      {grp:'Гробница',n:"Smoke Servant",role:"безмолвный страж кельи",cr:"CR 5",ac:15,hp:90,sp:"50 парение",ini:5,pb:3,
+       A:{S:14,D:20,C:14,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Claw",h:8,d:"4d6",t:"рубящий",note:"мультиатака: две за ход"},{name:"Suffocate",h:null,d:"",t:"",note:"DC 13 ТЕЛ или задыхается раунд, без действия"}],
+       abil:["Иммунитет к обычному оружию","Не удаляется от поста"]}
+    ]
+  };
+
+  ADV.copper={
+    name:"Copper Crow Champions", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Бармен Деллифер заманивает искателей на подпольные бои против непобедимого «чемпиона» — но чемпион это гигантская разумная слизь, годами пожирающая бойцов в затопленной канализации под баром.",
+    plot:[
+      ["#1 У бара","Смрад, грязный переулок; мёртвый нищий Самвик (нож в спине); безобидные щупальца чёрного слизня. Обыск: кислотный кинжал."],
+      ["#2 Внутри бара","Кабак; хозяйка Деллифер предлагает бой с «чемпионом» в подвале за 1000 зм. Ловушка на лестнице сбрасывает в канализацию. Обыск: жемчужная серьга."],
+      ["#3 Скользкий перекрёсток","Слизь на стенах, скелеты; рой гнилостных крыс; издалека чавканье Nightsoil. Обыск: череп с призраком бахвала Кассиуса."],
+      ["#4 Красная яма","Жгучие водоросли, метан; 1d6 кислотных пауков. Клад: карнеолы (300 зм), статуэтка (weirding water — рост/уменьшение на 3 фута). Нищий Эйврил предаст."],
+      ["#5 Заваленная канализация","Обвал (час на расчистку); из-под завала Sewergator (распадается на 3 сегмента). Статуя Святой Нзаны: воссоединение исцеляет, но обрушивает бар (1d6 трупов и 1d6 буйных пьяниц в каждой локации). Обыск: проклятый шлем."],
+      ["#6 Бурлящий туннель","Поток между шипастыми решётками; 1d6 псевдочерепах. Обыск: разъеденная броня."],
+      ["#7 Медленный водоворот","Плавающий мусор (плащ, гранаты, дверь, стол). Из воды нападает Nightsoil. Обыск: кислотный хлыст-цепь."]
+    ],
+    ends:[
+      ["Победа над Nightsoil","Одолеть чемпиона — конец кровавым ставкам Деллифер."],
+      ["Статуя восстановлена","Воссоединить статую Нзаны — исцеление ценой обрушения бара на пьяных."],
+      ["Партия предана","Эйврил заманивает героев в ловушку ради спасения."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Nightsoil появляется с #7 и медленно преследует, если стоять на месте.",
+      "Статуя Нзаны (#5): исцеление ценой обрушения бара.",
+      "Нищий Эйврил (#4) предаст ради спасения."
+    ]]],
+    prompts:[
+      ["Слизень-чемпион","A grimy underground fight-club beneath a seedy tavern seen through floor grates, a massive quivering ooze studded with grinning skulls in a sewer pit, torchlight, dark fantasy"],
+      ["Канализация после потопа","A flooded sewer tunnel with dark water rushing between spiked iron grates, translucent squishy turtle-like blobs sliding down slick green walls, moody dungeon lighting"]
+    ],
+    gloss:[
+      ["Dellifer","Хозяйка Copper Crow, устраивает бои с «чемпионом»."],
+      ["Nightsoil","Непобедимый «чемпион» — разумная слизь-людоед."],
+      ["Saint Nzana","Святая; обезглавленная статуя даёт исцеление ценой обрушения потолка."],
+      ["Avril","Нищий в трубе; предаст партию ради спасения."]
+    ],
+    docs:[{id:'docs_txt/copper.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Твари',n:"Bloat Rat (рой)",role:"рой падальщиков",cr:"CR 1",ac:10,hp:20,sp:"30",ini:0,pb:2,
+       A:{S:8,D:10,C:8,I:2,W:10,Ch:2},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:2,d:"2d6",t:"колющий"}],
+       abil:["Иммунитет к кислоте","Раненый роем горит кислотой 1/раунд, пока не промыть (действие)","При гибели брызг кислоты: 5 фт, DC 13 ТЕЛ или 1d6 кислотой"]},
+      {grp:'Простолюдины',n:"Drunkard",role:"пьяный драчун",cr:"CR 0",ac:10,hp:4,sp:"30",ini:0,pb:2,
+       A:{S:10,D:10,C:10,I:10,W:10,Ch:10},sv:[],skills:"—",senses:"пасс. 10",langs:"Общий",
+       atk:[{name:"Дубинка",h:2,d:"1d4",t:"дробящий"}],
+       abil:["Обычный горожанин, вооружённый спьяну"]},
+      {grp:'Боссы',n:"Nightsoil",role:"чемпион бойцовского клуба (слизь)",cr:"CR 5",ac:10,hp:50,sp:"20 плавание",ini:-2,pb:3,
+       A:{S:14,D:6,C:20,I:2,W:10,Ch:2},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Удар щупальцем",h:4,d:"3d6",t:"кислотный",note:"растворяет дерево за 1 раунд, металл за 2, если не смыть"},{name:"Обвал (Tackle)",h:null,d:"",t:"эффект",note:"5 фт: DC 13 ЛОВ или сбит и не может дышать; вырваться — действие, СИЛ DC 13"}],
+       abil:["Иммунитет ко всему, кроме огня","Мультиатака: две атаки","Стартует у #7, медленно преследует стоящих на месте"]},
+      {grp:'Слизни',n:"Pseudo-Turtle",role:"тварь-падальщик",cr:"CR 1",ac:10,hp:15,sp:"40",ini:3,pb:2,
+       A:{S:6,D:16,C:14,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Костяной осколок",h:5,d:"1d6",t:"рубящий + 1d6 кислота",extra:"1d6",note:"после 3 попаданий растворяет одежду/дерево, после 6 — металл"}],
+       abil:["Иммунитет к кислоте и обычному оружию","Прыгает и лазает по стенам"]},
+      {grp:'Твари',n:"Sewergator",role:"болотный хищник",cr:"CR 5",ac:14,hp:45,sp:"40 плавание",ini:0,pb:3,
+       A:{S:20,D:10,C:16,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:6,d:"2d6",t:"колющий"},{name:"Коготь",h:4,d:"1d6",t:"рубящий"},{name:"Хвост",h:6,d:"3d6",t:"дробящий"}],
+       abil:["Мультиатака: три атаки","Разделяется на голову/торс/хвост, каждый по 15 ПЗ и атакует отдельно"]},
+      {grp:'Слизни',n:"Sludge Spider",role:"кислотный паразит",cr:"CR 1/2",ac:10,hp:10,sp:"20",ini:1,pb:2,
+       A:{S:6,D:12,C:12,I:6,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Кислотное прикосновение",h:2,d:"1d6",t:"кислотный",note:"1-е попадание — волосы, 2-е — одежда, 3-е — 1d6 кислотой"}],
+       abil:["Иммунитет к кислоте и обычному оружию"]}
+    ]
+  };
+
+  ADV.poison={
+    name:"Poison Blooms Eternal", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Старая эльфийка выкопала легендарный ядовитый цветок из-под защиты древнего обелиска — он убил её и теперь превращает всё живое в округе в кровоточащих растений-зомби.",
+    plot:[
+      ["#1 Сад черимойи","Белые деревья, целебные плоды (1d6 хилки); юный эльф Джуниан укажет путь к обелиску; дерево трясёт имплантированная черепаха в шипах и розах."],
+      ["#2 Туманные заводи","Мшистые тропы, чёрные заводи, эльфийские трупы с лилиями в глазах; в воде золото. Касание воды — три эльфа-зомби. Клад: золотой кинжал-лист."],
+      ["#3 Обсидиановый обелиск","20-фут столб с рунами защиты; свежая яма (корни Vulgar Lily). Вороны знают: Малпигея унесла лилию и погибла. След к #4→7."],
+      ["#4 Поле корней","Корни сбивают с ног; 1d6 имплантированных гадюк на остановившегося. Травница Оналла торгует зельями (50 зм), знает о цветке, но не об опасности."],
+      ["#5 Живая изгородь","Кровоточащие цветы взрывают колибри; изгородь требует кровавой жертвы (⅓ ПЗ) за проход. Статуя Нефри-Ребёнка (обнявший становится 10-летним, его игнорируют, пока не заговорит). Клад: топор, лазурная сфера."],
+      ["#6 Феи-поляна","Ослепляющие бабочки (фонарь на 1d6 дней); невидимые хамелеоны под маргаритками; атакуют три имплантированных хамелеона. Добыча: плащ хамелеона."],
+      ["#7 Вульгарная лилия","20-фут красный цветок пронзает труп Малпигеи щупальцами, шепчет «Корми меня». При ней — трубка Чёрной Орхидеи."]
+    ],
+    ends:[
+      ["Vulgar Lily уничтожена","Убить разумный цветок — снять угрозу с болота и эльфов."],
+      ["Малпигея воскрешена/добита","Pipe of the Black Orchid: вернуть эльфийку к жизни или упокоить (ценой заряда)."],
+      ["Партия заражена","Неудача — герои становятся новыми слугами лилии."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Статуя Нефри (#5): обнявший становится 10-летним, все его игнорируют — редкий безопасный момент.",
+      "Оналла (#4) продаёт зелья (сон/ярость/противоядие/…) по 50 зм.",
+      "Pipe of the Black Orchid: 2 заряда (воскресить труп / убить живое); третье использование убивает курильщика."
+    ]]],
+    prompts:[
+      ["Обелиск и мёртвый лес","A tall black obsidian obelisk in a clearing of dead white trees, glowing elven runes, white ravens circling, eerie fey swamp atmosphere"],
+      ["Vulgar Lily","A towering twenty-foot corkscrewing red blossom monster with pustule-covered vines puncturing a withered elf corpse in a fern thicket, dark botanical horror"]
+    ],
+    gloss:[
+      ["Malpygea","Старая эльфийка, унёсшая Vulgar Lily из-под обелиска и погибшая."],
+      ["Junian","Юный эльф в саду черимойи, укажет путь к обелиску."],
+      ["Onallah","Эльфийка-травница, продаёт зелья."],
+      ["Nefri the Child","Статуя, дающая эффект физического омоложения."],
+      ["Vulgar Lily","Разумный ядовитый цветок, превращает существ в растения-зомби."]
+    ],
+    docs:[{id:'docs_txt/poison.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Растения',n:"Awakened Hedge",role:"живая изгородь-кукловод",cr:"CR 4",ac:11,hp:75,sp:"0",ini:-2,pb:2,
+       A:{S:18,D:6,C:16,I:10,W:12,Ch:10},sv:[],skills:"—",senses:"пасс. 11",langs:"Общий",
+       atk:[{name:"Шипы",h:7,d:"3d6",t:"колющий",note:"DC 13 ТЕЛ или ничком от кровопотери"},{name:"Цветы (конус 15 фт)",h:null,d:"3d6",t:"яд",note:"DC 13 ТЕЛ, лопающиеся сосуды"}],
+       abil:["Боится огня и насекомых","Мультиатака: две атаки","Управляет пронзёнными трупами как марионетками","После насыщения кровью засыпает"]},
+      {grp:'Заражённые',n:"Implanted Chameleon",role:"мутировавший хищник",cr:"CR 2",ac:17,hp:25,sp:"30 лазание",ini:1,pb:2,
+       A:{S:14,D:12,C:12,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Язык",h:4,d:"2d6",t:"дробящий",note:"DC 13 ТЕЛ или кровавые бутоны — помеха на физику"},{name:"Хвост",h:4,d:"2d6",t:"дробящий",note:"DC 13 ЛОВ или ничком"}],
+       abil:["Иммунитет к яду","Атакует ближайшую угрозу растениям","Невидим, если не атакует"]},
+      {grp:'Заражённые',n:"Implanted Elf",role:"оживший труп-жертва",cr:"CR 1",ac:13,hp:20,sp:"30",ini:3,pb:2,
+       A:{S:14,D:16,C:12,I:8,W:10,Ch:8},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус",h:3,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или кровавые бутоны — помеха на физику"},{name:"Ятаган",h:5,d:"2d6",t:"рубящий"}],
+       abil:["Иммунитет к яду","Атакует ближайшую угрозу растениям"]},
+      {grp:'Заражённые',n:"Implanted Turtle",role:"мутировавшая черепаха",cr:"CR 1/2",ac:14,hp:15,sp:"20",ini:0,pb:2,
+       A:{S:16,D:10,C:14,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Клюв",h:4,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или кровавые бутоны — помеха на физику"}],
+       abil:["Иммунитет к яду","Атакует ближайшую угрозу растениям"]},
+      {grp:'Заражённые',n:"Implanted Viper",role:"ядовитая змея-жертва",cr:"CR 1/4",ac:14,hp:10,sp:"40",ini:2,pb:2,
+       A:{S:6,D:14,C:10,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Укус",h:3,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или кровавые бутоны — помеха на физику"}],
+       abil:["Иммунитет к яду","Атакует ближайшую угрозу растениям"]},
+      {grp:'Боссы',n:"Vulgar Lily",role:"разумный цветок-хищник",cr:"CR 5",ac:12,hp:100,sp:"0",ini:2,pb:3,
+       A:{S:18,D:14,C:16,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Лозы",h:6,d:"3d6",t:"дробящий",note:"DC 13 ЛОВ или схвачен; вырваться — действие, СИЛ DC 13"},{name:"Нектарный спрей (10 фт)",h:null,d:"1d6",t:"яд",note:"DC 13 ТЕЛ или 1d6 яда и слепота/глухота/немота"}],
+       abil:["Иммунитет к яду","Мультиатака: две атаки","Превращает существ в растения-зомби"]}
+    ]
+  };
+
+  ADV.shock={
+    name:"Shock and Claw", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Охотник на драконов Доминик Рейн убил отказавшего ему волшебника и превратил его башню в ловушку из молний, чтобы заманить и убить мать-дракониху Волтаю, мстя за уничтоженную деревню — партии решать, спасать её детёнышей или помочь мстителю.",
+    plot:[
+      ["#1 У башни","Ворота под током (сирены + молния); обугленный газон; башня в медных стержнях, по стенам разряды. Шум сирен приманивает горожан на смерть. Обыск: чешуя вирмлинга."],
+      ["#2 Приёмный зал","Запертая дверь; вспоротые диваны, фульгуриты; снизу дыхание, сверху лязг. Клад: искроядная фульгурита."],
+      ["#3 Винный погреб","Разбитые бутылки в вине, спит пьяный вирмлинг; наступишь в лужу — удар током и пробуждение. Находка: шардоне «Кулон»."],
+      ["#4 Спальня","Два вирмлинга дерутся за топаз; сундук-ловушка вспыхивает огнём (внутри чертежи заводных обезьян). Клад: заряженный топаз."],
+      ["#5 Медная лаборатория","Лейденские банки, генераторы; заводная обезьянка Coppertop убегает от вирмлинга, готова служить новому магу. Клад: заряженный рубин и сапфир."],
+      ["#6 Статичная библиотека","Сожжённые книги погребли тело волшебника Талеса (болт в спине); три петтидрейка грызут бумаги. Клад: кольцо Талеса."],
+      ["#7 Штормарий","Три катушки Теслы; раненый вирмлинг пронзён в стеклянном потолке (тронешь — придёт мать Волтая); три рычага гасят катушки. В центре охотник Доминик Рейн с арбалетом и сферой Талеса ждёт Волтаю. Клад: сфера Талеса."]
+    ],
+    ends:[
+      ["Voltaja спасена","Отключить башню рычагами (#7), не дать Рейну убить мать-дракониху — освободить её и детёнышей."],
+      ["Rane побеждает","Помочь/не мешать Рейну убить Волтаю, мстя за деревню Gray Hollow."],
+      ["Партия гибнет от тока","Молнии и вирмлинги истребляют партию до Штормария."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Рычаги в #7 отключают катушки — превращают бой с драконом в моральный выбор о судьбе Рейна.",
+      "Thales' Orb приманивает всех драконов в радиусе мили — приманка/ловушка.",
+      "Coppertop (#5) — союзник, если спасти от вирмлингов.",
+      "Мать-дракониха (CR 13) — избегай прямого боя: это моральная развязка, не рубка."
+    ]]],
+    prompts:[
+      ["Топазовая башня","A tall armored tower bristling with crooked copper lightning rods, electric arcs crackling up dark bronze walls under a stormy sky, gothic sci-fantasy"],
+      ["Штормарий","Three spiraling tesla coils inside a glass-ceilinged chamber, a wounded blue dragon wyrmling impaled on broken glass above, a grim dark-coated drake hunter holding a crossbow and a glowing orb"]
+    ],
+    gloss:[
+      ["Dominik Rane","Мрачный охотник на драконов, убивший Талеса ради ловушки на Волтаю."],
+      ["Thales","Убитый волшебник, владелец Топазовой башни."],
+      ["Voltaja","Мать-дракониха, ищет похищенных детёнышей."],
+      ["Coppertop","Заводная обезьянка-помощник."],
+      ["Gray Hollow","Родная деревня Рейна, уничтоженная драконами."]
+    ],
+    docs:[{id:'docs_txt/shock.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Драконы',n:"Galvanic Wyrmling",role:"детёныш грозового дракона",cr:"CR 2",ac:17,hp:25,sp:"30",ini:0,pb:2,
+       A:{S:16,D:10,C:14,I:12,W:10,Ch:14},sv:[],skills:"—",senses:"пасс. 10",langs:"Драконий",
+       atk:[{name:"Укус",h:5,d:"2d6",t:"колющий"},{name:"Удар молнии (перезар. 5-6)",h:null,d:"6d6",t:"молния",note:"линия 90×5 фт; DC 13 ЛОВ полу"}],
+       abil:["Иммунитет к молнии"]},
+      {grp:'Боссы',n:"Galvanic Drake (Voltaja)",role:"мать-дракониха (избегать боя)",cr:"CR 13",ac:19,hp:200,sp:"50",ini:1,pb:5,
+       A:{S:20,D:12,C:20,I:16,W:14,Ch:18},sv:[],skills:"—",senses:"пасс. 12",langs:"Драконий",
+       atk:[{name:"Укус",h:10,d:"4d6",t:"колющий"},{name:"Коготь",h:10,d:"3d6",t:"рубящий"},{name:"Удар молнии (перезар. 5-6)",h:null,d:"10d6",t:"молния",note:"линия 90×5 фт; DC 15 ЛОВ полу"}],
+       abil:["Иммунитет к молнии и обычному оружию","Мультиатака: три атаки","Гальваническая броня: бьющий металлом получает 1d6 молнии","CR 13 — не для честного боя на ур.3, это моральная развязка"]},
+      {grp:'Драконы',n:"Pettydrake",role:"городской вредитель",cr:"CR 1/2",ac:13,hp:10,sp:"30",ini:2,pb:2,
+       A:{S:6,D:14,C:12,I:10,W:12,Ch:10},sv:[],skills:"—",senses:"пасс. 11",langs:"Драконий",
+       atk:[{name:"Укус",h:4,d:"1d6",t:"колющий",note:"DC 13 ТЕЛ или недееспособен 1 раунд от яда"}],
+       abil:["Иммунитет к страху"]},
+      {grp:'NPC',n:"Dominik Rane",role:"охотник на драконов",cr:"CR 4",ac:15,hp:50,sp:"30",ini:3,pb:2,
+       A:{S:14,D:16,C:12,I:10,W:12,Ch:12},sv:[],skills:"—",senses:"пасс. 11",langs:"Общий",
+       atk:[{name:"Рапира",h:5,d:"2d6",t:"колющий"},{name:"Арбалет",h:5,d:"2d6",t:"колющий",note:"дальн. 60 фт"}],
+       abil:["Мультиатака: две атаки","Плащ отпугивает молодых драконов","Эксперт: при атаке 1d6 — на 1-2 цель роняет оружие и падает ниц"]}
+    ]
+  };
+
+  ADV.feud={
+    name:"Fatal Family Feud", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Катакомбы клана Куруда неспокойны: мёртвые нобили хотят возродить империю, и лишь вечная схватка воительницы-нежити Соджин с роднёй их сдерживает. Партии выбрать: помочь Соджин или предать её ради награды нобилей.",
+    plot:[
+      ["#1 Белый курган","Кладбище в белом тумане; вороны бьются с нежитью, но боятся Иссушающих орлов; скелет сокольничего Тайвена знает историю клана — вороны рвут его. Сокровище: красный шёлковый жилет."],
+      ["#2 Вход в катакомбы","Арка с ржавой решёткой, руны «Клан Куруда спит чутко»; шумные цепи зовут 1d6 Иссушающих орлов."],
+      ["#3 Зал стрел","Коридор из костяных стрел в серебристой паутине; тронешь стрелы — 1d6 Черепных пауков; тронешь нити — 3d6 стрел (сжечь нити — пройти). Потайной ход к #7."],
+      ["#4 Могилы бедняков","Иссохшие трупы тянут руки уложить рядом (безвредно). Труп-нобиль Муджин умоляет помочь сбежать за 30 золотых — побежит к воротам, Соджин убьёт его. Купель с золотой «странной водой» (кожа окрашивается в названный цвет)."],
+      ["#5 Святые могилы","Семь чёрных гробов, бронзовая жаровня; открыть гроб/зажечь — семь мёртвых шаманов (Соджин усмиряет) или вся нежить падает мёртвой. Труп-нобиль Ворта предлагает 50 зм и скимитар Соджин за её убийство. Ловушка: проклятый рубин (плоть → невидимый скелет)."],
+      ["#6 Могилы нобилей","Пять золотых гробов у статуи Единорога-жука; нобили Алтис и Гедай бьются с Соджин (если Ворта/Муджин «живы» — тоже). Сокровища: Золотая маска войны, Перчатка сокольничего, 322 зм. Статуя проклята (некроз: полускорость и немота 10 мин)."],
+      ["#7 Могилы героев","Два мраморных саркофага под азуритовым куполом; один пуст. Открыть закрытый — прибегает Соджин защищать тело мужа Ночи. Сокровища: лук Ночи, скимитар Соджин. Потайной ход к #3."]
+    ],
+    ends:[
+      ["Соджин побеждает","Защитить Соджин; нобили уничтожены/заперты — хрупкое равновесие сохранено."],
+      ["Партия предаёт Соджин","Соджин убита, нобили Куруда вырываются возрождать империю — тёмный сиквел."],
+      ["Компромисс","Один нобиль отпущен за золото, но Соджин выживает и патрулирует катакомбы."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Вороны (#1) — союзники против нежити, но бегут от Иссушающих орлов.",
+      "Ворта (#5) — точка морального выбора: награда за убийство Соджин против верности ей.",
+      "Секретные ходы связывают #3 и #7 — можно обойти маршрут.",
+      "Скимитар Соджин — двойной урон нежити, но вся нежить целит носителя первым."
+    ]]],
+    prompts:[
+      ["Туманный курган","A foggy cemetery with black skeletal shrubs and stiff gray grass, crows on leaning headstones, a white burial cairn on a low hill, eerie dark fantasy"],
+      ["Соджин Куруда","A beautiful undead swordswoman in red-and-gold silk armor over polished chitin, wielding a glowing green scimitar, battling skeletal relatives in an ancient catacomb, dark fantasy"]
+    ],
+    gloss:[
+      ["Соджин Куруда","Нежить-героиня, вечно сдерживает родичей от восстания."],
+      ["Ворта Куруда","Труп-нобиль, предлагает награду за убийство Соджин."],
+      ["Муджин Куруда","Труп-нобиль, умоляет помочь сбежать."],
+      ["Тайвен","Скелет-сокольничий, знал историю клана."],
+      ["Ночи","Покойный муж Соджин в Могилах героев."]
+    ],
+    docs:[{id:'docs_txt/feud.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Нежить',n:"Noble Corpse (Труп-нобиль)",role:"нежить-аристократ, союзник или враг",cr:"CR 2",ac:12,hp:35,sp:"30",ini:2,pb:2,
+       A:{S:14,D:14,C:16,I:10,W:12,Ch:14},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Скимитар",h:5,d:"2d6",t:"рубящий"},{name:"Смрад могилы (аура)",h:null,d:"1d6",t:"некротический",note:"DC 13 ТЕЛ, все в 5 фт"}],
+       abil:["Иммунитет: яд, очарование, испуг, сон, некротика","Мультиатака: две атаки"]},
+      {grp:'Боссы',n:"Sojin Kurudai (Соджин)",role:"нежить-героиня, страж катакомб",cr:"CR 5",ac:14,hp:75,sp:"30",ini:2,pb:3,
+       A:{S:18,D:14,C:18,I:12,W:16,Ch:18},sv:[],skills:"—",senses:"пасс. 13",langs:"—",
+       atk:[{name:"Скимитар",h:7,d:"3d6",t:"рубящий"},{name:"Смрад могилы (аура)",h:null,d:"1d6",t:"некротический",note:"DC 13 ТЕЛ, все в 5 фт"}],
+       abil:["Иммунитет: яд, очарование, испуг, сон, некротика","Парирование: отражает все дальнобойные атаки","Мультиатака: две атаки"]},
+      {grp:'Твари',n:"Skull Spider (Черепной паук)",role:"паучья нежить-ловушка",cr:"CR 1/4",ac:14,hp:15,sp:"40 лазание",ini:3,pb:2,
+       A:{S:12,D:16,C:12,I:6,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Укус",h:3,d:"1d6",t:"колющий",note:"+ DC 13 ТЕЛ иначе 1d6 яда"}],
+       abil:["Паучье лазание, чувство паутины","Костяной панцирь: иммунитет к дальнобойным атакам"]},
+      {grp:'Нежить',n:"Thresher Eagle (Иссушающий орёл)",role:"летающая нежить-хищник",cr:"CR 1/4",ac:12,hp:15,sp:"60 полёт",ini:3,pb:2,
+       A:{S:6,D:16,C:10,I:6,W:14,Ch:6},sv:[],skills:"—",senses:"пасс. 12",langs:"—",
+       atk:[{name:"Когти",h:4,d:"1d6",t:"рубящий"},{name:"Клинки крыльев",h:null,d:"1d6",t:"рубящий",note:"DC 13 ЛОВ, до 4 целей по прямой"}],
+       abil:["Прожорлив: чем больше съедает, тем более скелетный"]}
+    ]
+  };
+
+  ADV.ransom={
+    name:"Handsome Ransom", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Богатый торговец фарфором Темар утверждает, что его сына Демоса похитили Воинствующие воры и требует выкуп в 3000 зм жемчугом — но «похищенный» сын сам возглавляет банду и грабит собственного отца.",
+    plot:[
+      ["#1 Бристлвудская дорога","Ливень, грязь под мёртвыми деревьями; в колеях 2d6 арбалетных болтов (двойной урон); рой Кровокрылых белок рвёт старого пса Брюзгу. Эльдрич-алтарь «Клык Вайока» (клыки, грызущие что угодно)."],
+      ["#2 Снаружи форта","Стена из шипастых брёвен; лучник Сандор стреляет с башни; охранник Гаспар любит взятки, но больше — боль; ловушка со шипастым бревном. Сокровище: 44 зм, Граната ангельского огня."],
+      ["#3 Внутри стен","Двор с гнилыми хижинами; ловушка (медвежий капкан у монеты); три Разрезоспинных пса под Вранглером Руфусом (метит на место главаря)."],
+      ["#4 Шаткая башня","Лучник Сандор ненавидит богатых, сталкивает лестницу; при уроне звонит в треугольник — созывает псов. Сокровища: луки, арбалеты, стрелы, Железный треугольник."],
+      ["#5 Кривой шалаш","Пять воров спят (чуткий сон); толстый кот Роланд «месит» волынки. Сокровища: кинжалы, броня, 99 зм. (Имена воров для генерации: Шив, Покетс, Скретч, Найвз, Смайли…)"],
+      ["#6 Цветные шатры","Мостик к сшитым шатрам; две дюжины растяжек (обвал шатра / грохот сковород созывает 1d6 воров). Сокровища: кроличья лапка, кости, белый порошок (спешный гнев)."],
+      ["#7 Древесный домик","Демос и Делайла играют в карты; Демос обнажает рапиру; Делайла защищает его, но переходит к победителю; пёс Герцогиня любит Делайлу. Сокровища: Криминальное перо, кинжал Делайлы, кольцо Демоса."]
+    ],
+    ends:[
+      ["Обман раскрыт","Партия понимает: похищение — афера Демоса; он и Делайла бегут с золотом отца."],
+      ["Демос повержен","Делайла переходит к партии, банда рассеивается без лидера."],
+      ["Партия примыкает к банде","Договориться с Демосом о доле вместо возврата выкупа."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Твист: «похищенный» сын сам главарь и грабит отца.",
+      "Железный треугольник (#4) созывает 3d6 голодных зверей в 100 фт — оружие/ловушка.",
+      "Список имён воров (#5) удобен для импровизации NPC.",
+      "Эльдрич-алтарь (#1) — необязательный крючок с долгим эффектом."
+    ]]],
+    prompts:[
+      ["Дорога через Бристлвуд","Heavy rain over a muddy forest road with thorny dead trees, red gliding squirrels watching from branches, dark fantasy"],
+      ["Древесный домик воров","A cozy elegant treehouse cottage overlooking a bandit fort, a young cocky rapier-wielding thief and a bejeweled woman playing cards, warm lantern light, fantasy"]
+    ],
+    gloss:[
+      ["Демос","Сын торговца Темара, тайный главарь Воинствующих воров."],
+      ["Делайла","Со-лидер банды, верна победителю."],
+      ["Темар Ангата","Богатый торговец фарфором, наниматель."],
+      ["Сандор","Юный лучник форта, ненавидит богачей."],
+      ["Вранглер Руфус","Псарь банды, метит на место лидера."]
+    ],
+    docs:[{id:'docs_txt/ransom.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Гуманоиды',n:"Thief Leader (Вор-главарь)",role:"лидер банды, ловушки и обман",cr:"CR 2",ac:15,hp:50,sp:"30",ini:3,pb:2,
+       A:{S:14,D:16,C:12,I:10,W:12,Ch:14},sv:[],skills:"—",senses:"пасс. 11",langs:"Общий",
+       atk:[{name:"Рапира",h:5,d:"1d6",t:"колющий"},{name:"Скрытые арбалеты (1/день)",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ, все в укрытии"}],
+       abil:["Кража: при попадании рапирой 1d6=1 крадёт деньги","Мультиатака: две атаки"]},
+      {grp:'Гуманоиды',n:"Thief Militant (Вор-боевик)",role:"рядовой бандит",cr:"CR 1",ac:13,hp:15,sp:"30",ini:2,pb:2,
+       A:{S:12,D:14,C:12,I:10,W:10,Ch:10},sv:[],skills:"—",senses:"пасс. 10",langs:"Общий",
+       atk:[{name:"Кинжал",h:4,d:"1d6",t:"колющий"},{name:"Арбалет",h:4,d:"1d6",t:"колющий",note:"дальн. 80 фт"}],
+       abil:["Кража: при попадании кинжалом 1d6=1 крадёт деньги","Берёт/предлагает взятки, чтобы сдаться или сбежать","Мультиатака: две атаки"]},
+      {grp:'Твари',n:"Bloodwing Squirrel (рой)",role:"агрессивный рой падальщиков",cr:"CR 1/2",ac:12,hp:10,sp:"40 полёт",ini:2,pb:2,
+       A:{S:2,D:14,C:8,I:4,W:10,Ch:4},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Укус (рой)",h:4,d:"2d6",t:"колющий",note:"досягаемость 15 фт; + DC 13 МДР иначе ослеплён 2 раунда"}],
+       abil:["Целятся в глаза","Планирующий полёт"]},
+      {grp:'Твари',n:"Razorback Hound (Разрезоспинный пёс)",role:"шипастый сторожевой пёс",cr:"CR 1/2",ac:12,hp:10,sp:"40",ini:2,pb:2,
+       A:{S:12,D:14,C:12,I:4,W:12,Ch:6},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Укус",h:4,d:"2d6",t:"колющий",note:"досягаемость 15 фт (прибл. по тексту первоисточника)"},{name:"Встряхивание шипами",h:null,d:"1d6",t:"колющий",note:"DC 13 ЛОВ, все в 10 фт"}],
+       abil:["Тело покрыто шипами"]}
+    ]
+  };
+
+  ADV.brass={
+    name:"Nightmares in Brass", sub:"13 Weird One-Shots · ур.3",
+    src:"13_Weird_OneShots_5E_v1.pdf (Joseph R. Lewis / Dungeon Age)",
+    lead:"Леди Трелла Йог управляет латунными слугами через Мыслеколпак, но впала в кому — эльдрич-чудовище Слиндрот проникло в особняк питаться её кошмарами, и теперь конструкты бьются в кошмарах наяву, нападая на всех.",
+    plot:[
+      ["#1 Снаружи особняка","Изгородь из бритвенной проволоки, готический особняк с башней-колпаком; на газоне расчленённые животные и кошелёк (13 зм). Ловушка: шаг по газону — вращающиеся лезвия «подстригают» живое."],
+      ["#2 Гостиная","Диваны вспороты, кровь по стенам без источника; шипит кошка Снежок; латунный дворецкий Найлз предлагает чай, но кричит «Я голый!» и метит в глаза гостям. Сокровище: снежный шар."],
+      ["#3 Столовая","Фарфор и серебро; змеиные силуэты под обоями рвутся щупальцами душить; латунная горничная Дафни в панике дерётся, лишь бы вырваться. Сокровище: серебро, фарфор (250 зм)."],
+      ["#4 Кухня","Латунная повариха Роза готовит; под крышками — дрожащая плоть с золотыми глазами. Тронешь еду — Роза зовёт, латунный воин Фрайзер пробивает потолок двумя мечами (но не спускается)."],
+      ["#5 Мастерская","Дверь заминирована (усыпляющий газ); три напуганных латунных кота разваливаются на части. Сокровища: три кварцевые сферы; графин со «странной водой» (Лицемим — любое чужое лицо, кроме своего)."],
+      ["#6 Библиотека","Циклон бумаги; два латунных попугая кричат «Мы падаем!»; на ковре Золотой шестерёночный гримуар. Опасность: бумага вспыхивает и постепенно сжигает дом."],
+      ["#7 Спальня хозяйки","Проход блокирует неподвижный четырёхрукий Фрайзер (бьёт всё на виду). На кровати без сознания леди Трелла в Мыслеколпаке; под кроватью прячется Слиндрот. Сокровища: Мыслеколпак, опаловое ожерелье (400 зм)."]
+    ],
+    ends:[
+      ["Колпак снят","Мыслеколпак убран — все конструкты отключаются."],
+      ["Слиндрот повержен/изгнан","Трелла просыпается, конструкты приходят в норму."],
+      ["Партия не успевает","Огонь из библиотеки сжигает особняк; безумные слуги терроризируют округу."]
+    ],
+    tips:[["🎯 Заметки",[
+      "Твист: Трелла не безумна — она жертва эльдрич-паразита, жрущего её кошмары.",
+      "Фрайзер видит только движущиеся цели — застывшие персонажи незаметны.",
+      "Огонь в библиотеке (#6) — таймер: медлишь — дом горит сильнее.",
+      "Мыслеколпак (1d6: 1=урон владельцу, 2-5=контроль над 1 конструктом, 6=над всеми рядом) — можно обратить против слуг."
+    ]]],
+    prompts:[
+      ["Особняк Йог","A black gothic gingerbread mansion with a witch-hat tower behind a razor-wire topiary hedge, dead animals on a manicured lawn, eerie dark fantasy"],
+      ["Слиндрот под кроватью","A shapeless mass of writhing red tentacles with mad golden eyes hiding under a brass sunhat lady's bed, dark whimsical eldritch horror"]
+    ],
+    gloss:[
+      ["Леди Трелла Йог","Хозяйка особняка, изобретательница латунных слуг, в коме из-за Слиндрота."],
+      ["Слиндрот","Эльдрич-чудовище, питается кошмарами Трелы, под её кроватью."],
+      ["Мыслеколпак","Латунная шляпа Трелы, даёт контроль над конструктами."],
+      ["Фрайзер","Четырёхрукий латунный воин-охранник, бьёт всё на виду."],
+      ["Найлз/Дафни/Роза","Латунные слуги в кошмарах наяву."]
+    ],
+    docs:[{id:'docs_txt/brass.txt',label:'Модуль (рус, текст)'}],
+    bestiary:[
+      {grp:'Конструкты',n:"Clockwork Servant (Латунный слуга)",role:"рядовой конструкт-слуга",cr:"CR 1",ac:14,hp:15,sp:"30",ini:1,pb:2,
+       A:{S:10,D:12,C:14,I:10,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Кулак",h:2,d:"1d6",t:"дробящий"}],
+       abil:["Иммунитет: яд, очарование, сон","Тревога: при уроне воет сиреной; через 1 мин прибывает Латунный воин"]},
+      {grp:'Боссы',n:"Clockwork Warrior (Фрайзер)",role:"тяжёлый конструкт-страж",cr:"CR 4",ac:16,hp:50,sp:"30",ini:3,pb:2,
+       A:{S:14,D:16,C:16,I:10,W:10,Ch:6},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+       atk:[{name:"Скимитар ×4",h:5,d:"2d6",t:"рубящий",note:"мультиатака: четыре атаки"},{name:"Шестерни",h:null,d:"2d6",t:"рубящий",note:"DC 13 ЛОВ, все в 30 фт"}],
+       abil:["Иммунитет: яд, очарование, сон","Обнаружение по движению: замечает только движущихся/действующих","Мультиатака: четыре атаки"]},
+      {grp:'Боссы',n:"Slyndroth (Слиндрот)",role:"эльдрич-пожиратель кошмаров",cr:"CR 4",ac:15,hp:50,sp:"30",ini:2,pb:2,
+       A:{S:16,D:14,C:16,I:18,W:12,Ch:16},sv:[],skills:"—",senses:"пасс. 11",langs:"—",
+       atk:[{name:"Щупальце",h:5,d:"3d6",t:"дробящий",note:"досягаемость 20 фт"},{name:"Эльдрич-гул",h:null,d:"",t:"эффект",note:"DC 13 ХАР иначе сон и кошмар; все в 30 фт; просыпаются от урона/тряски"}],
+       abil:["Иммунитет: психика, очарование, испуг, физ. атаки","Мультиатака: две атаки"]}
+    ]
+  };
+
+  /* ===== BESTIARY DATASETS (functions keep it tidy) ===== */
+  function cloudBestiary(){return [
+    {grp:'Культ',n:"Корова-послушница",role:"рядовой культист",cr:"~25 XP",ac:10,hp:13,sp:"30",ini:0,pb:2,
+      A:{S:14,D:10,C:13,I:8,W:11,Ch:8},sv:[],skills:"Внимательность +2",senses:"пасс. 12",langs:"понимает Общий, «мычит»",
+      atk:[{name:"Бодание",h:3,d:"1d6+1",t:"дроб."}],abil:["При первой гибели рядом — спас МДР DC 10 или бежит.","Небоец; опасна числом."]},
+    {grp:'Культ',n:"Пернатый крестоносец",role:"боевая корова ✚✚",cr:"CR 1",ac:13,hp:26,sp:"30",ini:0,pb:2,
+      A:{S:16,D:10,C:14,I:9,W:11,Ch:10},sv:['СИЛ'],skills:"Запугивание +2",senses:"пасс. 10",langs:"понимает Общий",
+      atk:[{name:"Бодание",h:5,d:"1d8+3",t:"дроб."},{name:"Крестовый порыв (разгон)",h:5,d:"1d8+3",t:"+2d6",extra:"2d6"}],
+      abil:["Символ — два скрещённых пера. Клич «Геус вульт!».","Фанатик: не бежит при пророке.","Ударная сила культа."]},
+    {grp:'Культ',n:"Обычная корова",role:"скот / фон",cr:"0",ac:10,hp:6,sp:"30",ini:0,pb:2,
+      A:{S:14,D:10,C:12,I:2,W:10,Ch:5},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+      atk:[{name:"Бодание",h:2,d:"1d4",t:"дроб."}],abil:["Не говорит, не воюет — просто корова."]},
+    {grp:'Культ',n:"Паук-слуга Геуса",role:"стражник святилища",cr:"CR 1/2",ac:13,hp:22,sp:"30, лаз.30",ini:2,pb:2,
+      A:{S:12,D:15,C:12,I:4,W:11,Ch:5},sv:[],skills:"Скрытность +4",senses:"тёмное 60, пасс. 10",langs:"—",
+      atk:[{name:"Укус",h:4,d:"1d6+2",t:"колющ.",note:"яд ТЕЛ DC 11, 2d4"},{name:"Паутина",h:null,d:"",t:"ЛОВ DC 11 или опутан"}],
+      abil:["Рыщет по тропе (ловушки Л4).","В святилище раздувается в Сегизаяка."]},
+    {grp:'Культ',n:"Бык-громила",role:"безмозглый таран",cr:"CR 1/2",ac:10,hp:19,sp:"40",ini:0,pb:2,
+      A:{S:16,D:10,C:14,I:2,W:11,Ch:5},sv:[],skills:"—",senses:"пасс. 10",langs:"—",
+      atk:[{name:"Таран",h:5,d:"2d4+3",t:"дроб., СИЛ DC 12 сбит"},{name:"Разгон +20фт",h:5,d:"2d4+3",t:"+2d4",extra:"2d4"}],
+      abil:["Не говорит, не хитрит — тупая мышца.","Для бюджета — CR 1/2 (100 XP)."]},
+    {grp:'Культ',n:"Актан — паладин",role:"классовая корова",cr:"мини-босс",ac:14,hp:30,sp:"30",ini:0,pb:2,
+      A:{S:15,D:10,C:14,I:10,W:12,Ch:14},sv:['МДР','ХАР'],skills:"Религия +2, Запугивание +4",senses:"пасс. 11",langs:"Общий",
+      atk:[{name:"Сияющий рог",h:5,d:"2d6+3",t:"дроб.+1d8 излуч.",extra:"1d8"}],
+      spells:"ЗС 12 (Харизма). Ячейки 1 круга ×3.",
+      spellbook:[["Божественная кара (ресурс)","При попадании тратит ячейку → +2d8 излуч. (в роге вшит 1d8)."],["Наказание (1 кр, конц.)","3 врага: спас ХАР DC 12 или −1d4 к атакам/спасам."],["Благословение (1 кр, конц.)","3 союзника +1d4 к атакам/спасам."],["Героизм (1 кр, конц.)","Союзник иммун к страху + врем. HP 2/ход."]],
+      abil:["Аура: коровы-союзники +1 к спасам (10 фт).","1/бой лечит корову 2d8.","Клятва «Плоти Не Вкушу»."]},
+    {grp:'Культ',n:"Кёкё — варлок",role:"классовая корова",cr:"мини-босс",ac:12,hp:22,sp:"30",ini:1,pb:2,
+      A:{S:12,D:12,C:13,I:11,W:10,Ch:15},sv:['МДР','ХАР'],skills:"Магия +2, Обман +4",senses:"тёмное 60, пасс. 10",langs:"Общий, Бездны",
+      atk:[{name:"Мучающий Взор (60фт)",h:5,d:"1d10+3",t:"некрот."}],
+      spells:"ЗС 13, атака +5 (Харизма).",
+      spellbook:[["Мучающий Взор (заговор)","Луч 60 фт, атака +5, 1d10 некрот."],["Чары личности (1/д)","Гуманоид 30 фт: спас МДР DC 13 или очарован 1 ч."],["Пугание (1/д)","Конус 15 фт: спас МДР DC 13 или напуган, роняет, бежит."],["Тьма (1/д, конц.)","Сфера 15 фт магич. тьмы, 10 мин."]],
+      abil:["1/день «Шёпот Геуса»: спас МДР DC 13 или напуган."]},
+    {grp:'Культ',n:"Мерген — следопыт",role:"классовая корова · гэг",cr:"CR 1/8",ac:13,hp:16,sp:"30",ini:2,pb:2,
+      A:{S:12,D:15,C:12,I:10,W:13,Ch:9},sv:['СИЛ','ЛОВ'],skills:"Скрытность +4, Внимательность +3",senses:"пасс. 13",langs:"Общий",
+      atk:[{name:"Лук",h:4,d:"1d6+2",t:"колющ. 80/320"}],
+      abil:["Гэг: вечно промахивается — при желании мастер кидает ей с помехой (сверху, вручную).","Её единственное попадание ранило Сергека. Мать Карачач."]},
+    {grp:'Культ',n:"Добул — варвар",role:"классовая корова",cr:"мини-босс",ac:12,hp:34,sp:"30",ini:1,pb:2,
+      A:{S:16,D:12,C:15,I:8,W:10,Ch:9},sv:['СИЛ','ТЕЛ'],skills:"Атлетика +5",senses:"пасс. 10",langs:"Общий",
+      atk:[{name:"Яростный таран",h:5,d:"2d6+3",t:"дроб."}],
+      abil:["Безрассудная атака (сверху накинь преим./уязвим вручную).","В ярости — сопротивление дробящему."]},
+    {grp:'Культ',n:"Карачач — плут",role:"классовая корова",cr:"мини-босс",ac:14,hp:21,sp:"30",ini:3,pb:2,
+      A:{S:10,D:16,C:12,I:13,W:12,Ch:13},sv:['ЛОВ','ИНТ'],skills:"Скрытность +5, Обман +3, Ловк.рук +5",senses:"тёмное 60, пасс. 11",langs:"Общий",
+      atk:[{name:"Бодание + скрытая",h:4,d:"1d6+2",t:"+2d6 скрытн.",extra:"2d6"}],
+      abil:["Бонусом прячется/отступает.","Знает тайный ход в храм.","Дочь Мергена; крадёт голову матери на кёк-бёрю."]},
+    {grp:'Культ',n:"Ырчы — бард",role:"классовая корова",cr:"CR 1/2",ac:12,hp:18,sp:"30",ini:1,pb:2,
+      A:{S:10,D:12,C:12,I:11,W:11,Ch:15},sv:['ЛОВ','ХАР'],skills:"Выступление +4, Убеждение +4",senses:"пасс. 10",langs:"Общий",
+      atk:[{name:"Гимн Вознесения (30фт)",h:null,d:"",t:"МДР DC 12 или помеха на 1 ход"}],
+      abil:["Мычащие гимны — уши вянут.","Вдохновляет коров (d6)."]},
+    {grp:'Культ',n:"Волко-корова",role:"сектант в шкуре",cr:"CR 1/4",ac:12,hp:11,sp:"40",ini:1,pb:2,
+      A:{S:14,D:12,C:13,I:7,W:12,Ch:7},sv:[],skills:"Внимательность +3, Скрытность +3",senses:"пасс. 13",langs:"понимает Общий",
+      atk:[{name:"Укус",h:4,d:"2d4+2",t:"колющ., стайн."}],
+      abil:["«Кто из вас альфа-корова?» → спас МДР DC 11, грызутся сами.","Первая смерть → паника."]},
+    {grp:'Культ',n:"Корова-жрица",role:"фанатик у алтаря",cr:"мини-босс",ac:12,hp:27,sp:"30",ini:0,pb:2,
+      A:{S:13,D:10,C:14,I:11,W:14,Ch:13},sv:['МДР','ХАР'],skills:"Религия +2, Проницательность +4",senses:"пасс. 12",langs:"Общий",
+      atk:[{name:"Копытный ритнож",h:4,d:"1d6+2",t:"колющ."}],
+      abil:["1/бой «Кровавое Благословение»: корове +2d8 HP.","При 0 HP (или доведя жертву коня) → 2-я форма."]},
+    {grp:'Боссы',n:"Жрица-Вознесённая (2-я форма)",role:"перерождение на алтаре",cr:"CR 3",ac:13,hp:60,sp:"30, полёт 20",ini:1,pb:2,
+      A:{S:14,D:12,C:15,I:11,W:16,Ch:15},sv:['ТЕЛ','МДР'],skills:"Религия +4, Проницательность +5",senses:"тёмное 30, пасс. 15",langs:"Общий",
+      atk:[{name:"Кровавое копыто ×3",h:5,d:"1d6+2",t:"дроб. (мультиатака)"},{name:"Плевок перьев (30фт)",h:5,d:"1d4+2",t:"колющ."}],
+      abil:["ТРИГГЕР: Корова-жрица при 0 HP / доведя жертву коня — «перит» и встаёт с полным HP.","Урон мал, но живучая и жуткая — берёт измором.","Незавершённое вознесение: СОПРОТИВЛЕНИЕ немагическому дроб/кол/руб — бей магией/огнём.","Мученический вой (перезар. 5–6): враги в 30 фт спас МДР DC 13 или напуганы 1 раунд.","При 0 HP осыпается ворохом перьев."]},
+    {grp:'Боссы',n:"РАКЫР — як, бывший эльф",role:"страж высот · УБИТЬ НЕЛЬЗЯ",cr:"CR 4",ac:15,hp:90,sp:"40",ini:1,pb:2,
+      A:{S:18,D:12,C:16,I:12,W:16,Ch:13},sv:['СИЛ','ТЕЛ','МДР'],skills:"Проницательность +5, Внимательность +5",senses:"тёмное 60, пасс. 15",langs:"Общий, Эльфийский, Сильван",
+      atk:[{name:"Рога",h:7,d:"2d6+4",t:"дроб."},{name:"Копыто",h:7,d:"1d8+4",t:"дроб."},{name:"Ярость яка (таран 30фт)",h:7,d:"2d6+4",t:"+ СИЛ DC 15 или сбит"}],
+      abil:["Мультиатака: рога + копыто.","БЕССМЕРТИЕ: при 0 HP восстаёт в конце след. раунда с ½ HP — не убить, только уложить/уговорить.","Иммун к «напуган» и яду.","Обход без боя: трофей игры / кумыс. Резервный источник Конского Языка."]},
+    {grp:'Боссы',n:"СЕГИЗАЯК — гигантский каракурт",role:"палач Геуса · «беги»",cr:"CR 5",ac:15,hp:110,sp:"40, лаз.40",ini:3,pb:3,
+      A:{S:17,D:16,C:16,I:4,W:12,Ch:6},sv:['ЛОВ','ТЕЛ'],skills:"Скрытность +6, Внимательность +4",senses:"слепое 10, тёмное 60, пасс. 14",langs:"—",
+      atk:[{name:"Укус ×2",h:7,d:"2d8+3",t:"яд ТЕЛ DC 15, 4d6 полу"},{name:"Паутина (дальн.)",h:null,d:"",t:"ЛОВ DC 13 или опутан"},{name:"Прыжок-налёт (30фт)",h:7,d:"2d8+3",t:"+ сбивание"}],
+      abil:["«Пожиратель Разумных»: действием глотает 1 говорящую корову в 30фт (только NPC; телеграф).","За порогом Сада НЕ гонит — уползает в гору. Игрокам бежать.","Раздувается из паука-слуги."]},
+    {grp:'Боссы',n:"ГЕУС — Гора-Паук",role:"дух · явление, не бой",cr:"легенда",ac:"—",hp:"гора",sp:"—",ini:null,pb:2,
+      A:null,sv:[],skills:"—",senses:"истинное зрение",langs:"Первый Язык",
+      atk:[{name:"Обвал (если разбужен)",h:null,d:"4d10",t:"по площади, ЛОВ DC 15 полу"}],
+      abil:["Разбужен — гора шевелится, сыплет камнями, спускает Сегизаяка.","Не сражаться: бежать/договариваться.","Проклял ВСЕХ эльфов мира. Снять — Конский Язык."]},
+    {grp:'Эльфы',n:"Хан Тёштюк",role:"вождь Ай-Тукум",cr:"CR 3",ac:16,hp:52,sp:"30",ini:2,pb:2,
+      A:{S:14,D:14,C:14,I:12,W:13,Ch:16},sv:['ТЕЛ','МДР','ХАР'],skills:"Убеждение +5, Запугивание +5, Проницательность +3",senses:"тёмное 60, пасс. 11",langs:"Общий, Эльфийский",
+      atk:[{name:"Сабля",h:5,d:"1d8+3",t:"рубящ."},{name:"Пика верхом",h:5,d:"1d10+3",t:"колющ."},{name:"Лук",h:4,d:"1d6+2",t:"80/320"}],
+      abil:["Фей-наследие: преим. против очарования, иммун к сну.","1/день «Клич вождя»: союзники +1d4 к атаке/спасу 1 мин.","Реакция «Парирование»: +2 КД против 1 удара.","В отрицании — ищет «конокрада» (проклятие)."]},
+    {grp:'Эльфы',n:"Бабка Айна",role:"шаманка · ключ к обряду",cr:"CR 2",ac:12,hp:33,sp:"30",ini:0,pb:2,
+      A:{S:9,D:11,C:12,I:13,W:16,Ch:13},sv:['ИНТ','МДР'],skills:"Медицина +5, История +3, Проницательность +5, Природа +3",senses:"тёмное 60, пасс. 13",langs:"Общий, Эльфийский, Сильван",
+      atk:[{name:"Посох",h:1,d:"1d6-1",t:"дроб."},{name:"Священное пламя (60фт)",h:null,d:"1d8",t:"ЛОВ DC 13 иначе урон"}],
+      spells:"ЗС 13, атака +5 (Мудрость). 1 круг ×4, 2 круг ×3.",
+      spellbook:[["Указание (заговор)","Цель +1d4 к одной проверке (конц.)."],["Священное пламя (заговор)","60 фт: ЛОВ DC 13 или 1d8 излуч."],["Лечение ран (1 кр)","Касание: +1d8+3 HP."],["Лечащее слово (1 кр, бон.)","60 фт: +1d4+3 HP."],["Благословение (1 кр, конц.)","3 союзника +1d4."],["Малое восстановление (2 кр)","Снимает болезнь/яд/паралич/глухоту."],["Стражи веры (2 кр, конц.)","Зона 15 фт: враги полскорости, 3d8 излуч. (МДР DC 13 полу)."]],
+      abil:["Хранит «Конский Язык» — формулу обряда.","Фей-наследие."]},
+    {grp:'Эльфы',n:"Сергек",role:"старый чабан (ранен)",cr:"CR 1",ac:13,hp:30,sp:"30",ini:1,pb:2,
+      A:{S:13,D:12,C:13,I:11,W:14,Ch:12},sv:['ТЕЛ','МДР'],skills:"Выживание +4, Уход за жив. +4, Внимательность +4",senses:"тёмное 60, пасс. 14",langs:"Общий, Эльфийский",
+      atk:[{name:"Копьё",h:3,d:"1d6+1",t:"колющ."}],
+      abil:["В стартовой сцене тяжело ранен — фактически ~5 HP.","Фей-наследие.","Ранен стрелой Мергена; стабилизировать — Медицина DC 10.","Отдаёт партии булут-ат Бурчака."]},
+    {grp:'Эльфы',n:"Лейлек",role:"юный чабан · лор",cr:"CR 1/4",ac:13,hp:16,sp:"30",ini:2,pb:2,
+      A:{S:10,D:14,C:11,I:10,W:12,Ch:11},sv:[],skills:"Уход за жив. +3, Внимательность +3, Выживание +3",senses:"тёмное 60, пасс. 13",langs:"Общий, Эльфийский",
+      atk:[{name:"Короткий лук",h:4,d:"1d6+2",t:"колющ."}],abil:["Фей-наследие.","В шоке от раны отца; сыплет слухами."]},
+    {grp:'Эльфы',n:"Ай-Тукум наездник",role:"рядовой кочевник (×N)",cr:"CR 1/2",ac:14,hp:22,sp:"30 (верхом 60)",ini:2,pb:2,
+      A:{S:11,D:14,C:12,I:11,W:13,Ch:11},sv:[],skills:"Выживание +5, Внимательность +5, Скрытность +4",senses:"тёмное 60, пасс. 15",langs:"Общий, Эльфийский",
+      atk:[{name:"Копьё верхом",h:4,d:"1d8+2",t:"колющ."},{name:"Лук",h:4,d:"1d6+2",t:"80/320"}],
+      abil:["Фей-наследие.","На булут-ат/лошади; налетает и отходит."]},
+    {grp:'Союзники',n:"Булут-ат «Бурчак»",role:"крылатый конь · маунт",cr:"союзник",ac:12,hp:25,sp:"60 / низкий полёт",ini:1,pb:2,
+      A:{S:18,D:13,C:15,I:6,W:12,Ch:10},sv:[],skills:"Внимательность +3",senses:"пасс. 13",langs:"понимает речь хозяина",
+      atk:[{name:"Удар копытами",h:6,d:"2d6+3",t:"дроб."}],abil:["INT 6, преим. на спасы от страха/чар.","1/день «облачный рывок».","Дар Сергека."]},
+    {grp:'NPC',n:"Дагульт — багбир-молочник",role:"квест-датель",cr:"CR 1",ac:16,hp:27,sp:"30",ini:2,pb:2,
+      A:{S:15,D:14,C:13,I:8,W:11,Ch:9},sv:[],skills:"Скрытность +6, Выживание +2",senses:"тёмное 60, пасс. 10",langs:"Общий, Гоблинский",
+      atk:[{name:"Моргенштерн",h:4,d:"2d8+2",t:"дроб."},{name:"Дротик",h:4,d:"1d4+2",t:"колющ."}],
+      abil:["Из засады +2d6. Не боец — нанимает партию.","Жена-эльфийка считает его придурком; слышит коров лишь как мычание.","Видел, как Бурека заговорила."]}
+  ];}
+
+  function snakesBestiary(){return [
+    {grp:'Змеи',n:"Keen Rattler",role:"гремучник-фанатик",cr:"CR 1/8",ac:13,hp:7,sp:"30",ini:2,pb:2,
+      A:{S:6,D:14,C:11,I:5,W:10,Ch:6},sv:[],skills:"Скрытность +4",senses:"слепое 10, пасс. 10",langs:"понимает",
+      atk:[{name:"Укус",h:5,d:"1d6",t:"колющ., яд ТЕЛ DC 13 или отравлен"}],
+      abil:["В группе одна «гремит» — заманивает в засаду.","Нападает на скот стадами."]},
+    {grp:'Змеи',n:"Kingly Cobra",role:"кобра-философ",cr:"CR 1/2",ac:13,hp:22,sp:"30",ini:2,pb:2,
+      A:{S:12,D:15,C:12,I:12,W:12,Ch:13},sv:['МДР'],skills:"Религия +3, Убеждение +3",senses:"пасс. 11",langs:"Общий",
+      atk:[{name:"Укус",h:4,d:"1d6+2",t:"колющ., яд ТЕЛ DC 13"}],
+      abil:["Спорит о богословии стоя на хвосте.","Умно ответишь → секрет: семена подсолнуха лечат змеиный яд.","Глупо → атакует с презрением."]},
+    {grp:'Змеи',n:"Red Adder Priest (рой)",role:"жрец-фанатик",cr:"CR 3 (700 XP)",ac:14,hp:50,sp:"20",ini:3,pb:2,
+      A:{S:10,D:16,C:12,I:6,W:10,Ch:6},sv:[],skills:"Религия +2",senses:"слепое 10, пасс. 10",langs:"понимает",
+      atk:[{name:"Змее-кулак ×2",h:5,d:"2d6",t:"колющ., яд ТЕЛ DC 13"},{name:"Sacred Fang (небесный клык)",h:null,d:"",t:"1–2 цели: ЛОВ DC 15 или слеп 3 раунда + ничком"}],
+      abil:["Иммунитет: яд, излучение.","Дюжина змей в рясе; фанатик протокола и жертв."]},
+    {grp:'Змеи',n:"Viperhawk Rakir",role:"падший страж лука",cr:"CR 2 (450 XP)",ac:14,hp:25,sp:"полёт 50",ini:4,pb:2,
+      A:{S:14,D:18,C:12,I:10,W:12,Ch:8},sv:['ЛОВ'],skills:"Внимательность +3",senses:"пасс. 13",langs:"Общий",
+      atk:[{name:"Когти",h:6,d:"2d6",t:"рубящ."},{name:"Humbling Flourish (поклон-росчерк)",h:null,d:"",t:"5 фт: ЛОВ DC 13 или 1d6 + ничком",extra:"1d6"}],
+      abil:["6-фут бронзовый раптор; чтит честь, презирает Закон и Хаос.","Snake Eater: атакует змей при виде.","Стережёт чёрный лук Rakir's Recurve на скале — дуэль за него."]},
+    {grp:'Боссы',n:"Лучезарный Мангуст",role:"палач ангела · «беги»",cr:"CR ~5 (прибл.)",ac:15,hp:90,sp:"40",ini:4,pb:3,
+      A:{S:16,D:18,C:15,I:4,W:12,Ch:10},sv:['ЛОВ','МДР'],skills:"Внимательность +4, Акробатика +7",senses:"тёмное 60, пасс. 14",langs:"—",
+      atk:[{name:"Укус",h:7,d:"2d8+4",t:"излуч."},{name:"Коготь ×2",h:7,d:"2d6+4",t:"рубящ."}],
+      abil:["Слуга ангела Гнесета. По команде «опыт окончен» — вырезает всех говорящих змей, затем свидетелей.","Игрокам — бежать. Приз: золотой мангуст 2000 зм.","⚠ Статы приближённые — сверься с PDF."]},
+    {grp:'Твари',n:"Grass Rat (рой)",role:"стая травяных крыс",cr:"CR 1/4",ac:12,hp:24,sp:"30",ini:2,pb:2,
+      A:{S:9,D:14,C:11,I:2,W:10,Ch:4},sv:[],skills:"—",senses:"тёмное 30, пасс. 10",langs:"—",
+      atk:[{name:"Укусы роя",h:4,d:"2d4",t:"колющ. (полу при ≤½ HP)"}],
+      abil:["Внезапные набеги 1d6–3d6 роёв в травах.","Сопротивление колющ./рубящ./дроб. (рой)."]}
+  ];}
+
+  function willowbyBestiary(){return [
+    {grp:'Гигант',n:"Bonebreaker Tom",role:"облачный гигант",cr:"HD 12",sys:'osr',ac:12,hp:72,hd:12,morale:10,sp:"скорость гиганта",ini:0,pb:2,
+      atk:[{name:"Благословенный колокол",h:8,d:"2d10",t:"дроб. + оглушение"},{name:"Хватающая рука (в окно)",h:8,d:"2d6",t:"схватить"}],
+      abil:["30 фт ростом. Гонится за гусыней по всему приключению.","Звон колокола будит особняк (ломает сигилы).","Хочет Милдред назад — вернёшь гусыню, уйдёт.","OSR: Броня 12 = КД; атака d20+бонус; Мораль 10."]},
+    {grp:'Нежить',n:"Скелет (по хозяйству)",role:"слуга-скелет",cr:"HD 1",sys:'osr',ac:12,hp:4,hd:1,morale:12,sp:"30",ini:0,pb:2,
+      atk:[{name:"Подручный инвентарь",h:2,d:"1d6",t:"дроб./реж."}],
+      abil:["Оживают 3×/день (d3), лезут из половиц.","Слушаются Фенвика / Смерти.","Не могут подойти к Святому-хранителю."]},
+    {grp:'Нежить',n:"Скелет-рыцарь",role:"элита в латах + магич. меч",cr:"HD 7",sys:'osr',ac:18,hp:35,hd:7,morale:12,sp:"30",ini:0,pb:2,
+      atk:[{name:"Магический меч",h:5,d:"1d8+1",t:"рубящ."}],
+      abil:["Тяжёлая броня (Броня 18).","Несёт магический клинок — приз."]},
+    {grp:'Нежить',n:"Элиас Фенвик",role:"некромант",cr:"HD 5",sys:'osr',ac:10,hp:12,hd:5,morale:9,sp:"30",ini:0,pb:2,
+      atk:[{name:"Посох",h:3,d:"1d6",t:"дроб."}],
+      abil:["Спеллы 1×/день каждый (Читать мысли и др.).","Командует всеми скелетами.","Обидчив; зови «Доктор Фенвик»."]},
+    {grp:'Призраки',n:"Лавиния Колдуотер",role:"призрак-аристократка",cr:"HD 4",sys:'osr',ac:12,hp:8,hd:4,morale:7,sp:"полёт",ini:0,pb:2,
+      atk:[{name:"Ледяное касание",h:4,d:"1d6",t:"некрот."}],
+      abil:["Спектральна/невидима; только магия или серебро.","Знает вход во Внутреннее святилище.","Является на имя «Лавиния»."]},
+    {grp:'Призраки',n:"Горацио",role:"призрачный лакей",cr:"HD 4",sys:'osr',ac:12,hp:8,hd:4,morale:5,sp:"полёт",ini:0,pb:2,
+      atk:[{name:"Поднос",h:4,d:"1d6",t:"дроб."}],abil:["Невидим; призрачный слуга.","Вызывается из табакерки."]},
+    {grp:'Твари',n:"Сова-медведь (чучело)",role:"оживший таксидермист",cr:"HD 4",sys:'osr',ac:10,hp:18,hd:4,morale:9,sp:"40",ini:0,pb:2,
+      atk:[{name:"Коготь + клюв",h:5,d:"2d6",t:"рубящ."}],abil:["Оживает в Охотничьей комнате, когда дом Беспокоен."]},
+    {grp:'Хаос',n:"Милдред (гусыня)",role:"золотая гусыня · MVP",cr:"HD 1",sys:'osr',ac:12,hp:1,hd:1,morale:12,sp:"полёт низкий",ini:0,pb:2,
+      atk:[{name:"Гневный щипок",h:2,d:"1d3",t:"дроб."}],
+      abil:["Несёт ЗОЛОТЫЕ ЯЙЦА — все её хотят.","HONK будит гиганта. Из-за неё вся заваруха.","Вернёшь гиганту — минус одна угроза."]}
+  ];}
+
+  function dcoBestiary(){return [
+    {grp:'Соперники',n:"The Crows (Вороны)",role:"банда убийц-мародёров",cr:"HD 3–4 ×4",sys:'osr',ac:14,hp:18,hd:4,morale:9,sp:"30",ini:2,pb:2,
+      atk:[{name:"Оружие",h:5,d:"1d8",t:"по оружию"},{name:"Арбалет",h:5,d:"1d8",t:"колющ."}],
+      abil:["4 крайне хитрых ветерана; идут к Обсерватории тем же путём.","Грабят выживших. Могут стать врагами, союзниками или предать.","Опытные — не лезут в честный бой, устраивают засады. Точные статы — в PDF."]},
+    {grp:'Твари',n:"Соляная Дриада",role:"антилювианская нежить",cr:"HD 3",sys:'osr',ac:13,hp:14,hd:3,morale:8,sp:"20",ini:1,pb:2,
+      atk:[{name:"Солёные когти",h:4,d:"1d8",t:"реж. + иссушение"}],
+      abil:["Дерево, просоленное веками; заманивает и топит.","У Обсерватории. OSR — сверься с PDF."]},
+    {grp:'Твари',n:"Утопленник (нежить потопа)",role:"цепляющийся мертвец",cr:"HD 2",sys:'osr',ac:11,hp:9,hd:2,morale:12,sp:"20, плавание 30",ini:0,pb:2,
+      atk:[{name:"Хватка",h:3,d:"1d6",t:"дроб. + утянуть под воду"}],
+      abil:["Восставшие жертвы потопа.","Хватают спасателей, тянут на дно."]},
+    {grp:'NPC',n:"Выжившие потопа",role:"тонущие беженцы",cr:"HD 1",sys:'osr',ac:10,hp:4,hd:1,morale:6,sp:"20",ini:0,pb:2,
+      atk:[{name:"—",h:null,d:"",t:"не бойцы"}],
+      abil:["Старик с телом жены, учитель с детьми на бревне, женщина в петле…","Спасти всех НЕЛЬЗЯ — это ядро модуля.","Каждый — моральный выбор и трата ресурсов."]}
+  ];}
+
+  /* ===== STATBLOCK RENDER ===== */
+  var CUR='cloud', curBest=[];
+  function renderBest(filterGrp){
+    var g=document.getElementById('sbgrid');g.innerHTML='';
+    curBest.forEach(function(m,idx){
+      if(filterGrp && filterGrp!=='Все' && m.grp!==filterGrp)return;
+      var osr=m.sys==='osr';
+      var d=document.createElement('details');d.className='sb';d.dataset.k=(m.n+' '+m.role+' '+m.grp).toLowerCase();
+      var atkHtml=(m.atk||[]).map(function(a,ai){
+        var hit=a.h!==null&&a.h!==undefined?'<button class="mini b-atk" data-atk="'+idx+'_'+ai+'">⚔ '+sgn(a.h)+'</button>':'';
+        var dmg=a.d?'<button class="mini b-dmg" data-dmg="'+idx+'_'+ai+'">🎲 '+esc(a.d)+(a.extra?('+'+a.extra):'')+'</button>':'';
+        var sub=a.t?('<small>'+esc(a.t)+(a.note?(' · '+esc(a.note)):'')+'</small>'):'';
+        return '<div class="atk"><div class="an">'+esc(a.name)+'<br>'+sub+'</div>'+hit+dmg+'</div>';
+      }).join('');
+      var vitals,ab6='',saverow='';
+      if(osr){
+        vitals='<span class="vit">HD <b>'+esc(m.hd)+'</b></span><span class="vit">HP <b>'+esc(m.hp)+'</b></span><span class="vit">Броня <b>'+esc(m.ac)+'</b></span><span class="vit">Мораль '+esc(m.morale)+'</span>'+(m.ini!==null?'<span class="vit">Иниц '+sgn(m.ini)+'</span>':'');
+      } else {
+        vitals='<span class="vit">КД <b>'+esc(m.ac)+'</b></span><span class="vit">HP <b>'+esc(m.hp)+'</b></span><span class="vit">Скор. '+esc(m.sp)+'</span>'+(m.ini!==null?'<span class="vit">Иниц '+sgn(m.ini)+'</span>':'');
+        if(m.A){
+          ab6='<div class="ab6">'+ABK.map(function(k){var sc=m.A[k[1]];return '<div class="ab"><b>'+k[0]+'</b><u>'+sc+'</u><s>'+sgn(mod(sc))+'</s></div>';}).join('')+'</div>';
+          saverow='<div class="saverow"><span class="lbl">спас</span>'+ABK.map(function(k){var prof=m.sv.indexOf(k[0])>=0,sv=mod(m.A[k[1]])+(prof?m.pb:0);return '<button class="mini b-save'+(prof?' prof':'')+'" data-save="'+idx+'_'+k[1]+'">'+k[0]+' '+sgn(sv)+'</button>';}).join('')+'</div>';
+        }
+      }
+      var kv = osr
+        ? '<div class="kv" style="color:var(--info)"><b style="color:var(--brass2)">OSR-lite:</b> Броня = КД · атака d20+бонус · урон по оружию · Мораль = когда бежит</div>'
+        : '<div class="kv"><b>Навыки:</b> '+esc(m.skills)+'</div><div class="kv"><b>Чувства:</b> '+esc(m.senses)+' · <b>Языки:</b> '+esc(m.langs)+'</div>';
+      var spells=(!osr&&m.spells)?'<div class="kv" style="color:var(--info)"><b style="color:var(--brass2)">✦ Заклинания:</b> '+esc(m.spells)+'</div>':'';
+      var sbook=(!osr&&m.spellbook)?'<ul class="abil" style="border-left:2px solid var(--brass);padding-left:16px;margin-top:4px">'+m.spellbook.map(function(s){return '<li><b style="color:var(--ink)">'+esc(s[0])+'</b> — '+esc(s[1])+'</li>';}).join('')+'</ul>':'';
+      var ab=(m.abil&&m.abil.length)?'<ul class="abil">'+m.abil.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'';
+      var initBtn=m.ini!==null?'<button class="mini b-init" data-init="'+idx+'">+ иниц ('+sgn(m.ini)+')</button>':'';
+      d.innerHTML='<summary><div><div class="nm">'+esc(m.n)+'</div><div class="role">'+esc(m.role)+'</div></div><span class="cr">'+esc(m.cr)+'</span></summary>'+
+        '<div class="sbbody"><div class="vitals">'+vitals+'</div>'+ab6+saverow+kv+spells+(atkHtml?('<div style="margin-top:8px">'+atkHtml+'</div>'):'')+sbook+ab+'<div style="margin-top:10px">'+initBtn+'</div></div>';
+      g.appendChild(d);
+    });
+  }
+  function buildChips(){
+    var groups=['Все'];curBest.forEach(function(m){if(groups.indexOf(m.grp)<0)groups.push(m.grp);});
+    var c=document.getElementById('grpChips');c.innerHTML='';
+    groups.forEach(function(gr,i){var b=document.createElement('button');b.className='chipf ghost'+(i===0?' on':'');b.textContent=gr;
+      b.onclick=function(){c.querySelectorAll('.chipf').forEach(function(x){x.classList.remove('on');});b.classList.add('on');renderBest(gr);document.getElementById('sbFilter').value='';};
+      c.appendChild(b);});
+  }
+  document.getElementById('sbgrid').addEventListener('click',function(e){var t=e.target;
+    if(t.dataset.atk){var p=t.dataset.atk.split('_'),m=curBest[+p[0]],a=m.atk[+p[1]];d20(a.h,m.n+' — '+a.name);}
+    else if(t.dataset.dmg){var q=t.dataset.dmg.split('_'),mm=curBest[+q[0]],aa=mm.atk[+q[1]];var r=parseDmg(aa.d),ex=aa.extra?parseDmg(aa.extra):null,tot=r.total+(ex?ex.total:0);showRoll(mm.n+' — урон '+aa.name,String(tot),r.detail+(ex?(' + '+ex.detail):''),'');}
+    else if(t.dataset.save){var s=t.dataset.save.split('_'),ms=curBest[+s[0]],ak=s[1],lab=ABK.filter(function(k){return k[1]===ak;})[0][0];var prof=ms.sv.indexOf(lab)>=0,sv=mod(ms.A[ak])+(prof?ms.pb:0);d20(sv,ms.n+' — спас '+lab);}
+    else if(t.dataset.init!==undefined&&t.dataset.init!==''){var mi=curBest[+t.dataset.init];
+      var a1=rng(20),b1=rng(20),pk=advMode==='Преим.'?Math.max(a1,b1):advMode==='Помеха'?Math.min(a1,b1):a1,roll=pk+mi.ini;
+      addToTrack(mi.n,roll,typeof mi.hp==='number'?mi.hp:'');showRoll(mi.n+' — инициатива',String(roll),'d20 ['+pk+']'+sgn(mi.ini)+(advMode!=='Обычный'?(' · '+advMode):''),'');toast(mi.n+' в трекере ('+roll+')');}
+  });
+  document.getElementById('sbFilter').addEventListener('input',function(){var q=this.value.toLowerCase();document.querySelectorAll('#sbgrid .sb').forEach(function(d){d.style.display=d.dataset.k.indexOf(q)>=0?'':'none';});});
+  document.getElementById('expandAll').onclick=function(){document.querySelectorAll('#sbgrid .sb').forEach(function(d){d.open=true;});};
+  document.getElementById('collapseAll').onclick=function(){document.querySelectorAll('#sbgrid .sb').forEach(function(d){d.open=false;});};
+
+  /* ===== INITIATIVE (global) ===== */
+  var track=[],turnIdx=-1,roundN=0;
+  try{var _t=JSON.parse(localStorage.getItem('gm-track-v1')||'null');if(_t){track=_t.track||[];turnIdx=(_t.turnIdx==null?-1:_t.turnIdx);roundN=_t.round||0;}}catch(e){}
+  function saveTrackLS(){try{localStorage.setItem('gm-track-v1',JSON.stringify({track:track,turnIdx:turnIdx,round:roundN}));}catch(e){}}
+  function addToTrack(name,init,hp){track.push({name:name,init:init,hp:hp==null?'':hp});track.sort(function(a,b){return b.init-a.init;});renderTrack();}
+  function renderTrack(){var el=document.getElementById('track');saveTrackLS();
+    if(!track.length){el.innerHTML='<div class="empty">Пусто. Добавляй вручную или «+ иниц» в бестиарии.</div>';return;}
+    el.innerHTML=(roundN>0?'<div class="round">⚔ Раунд '+roundN+'</div>':'');track.forEach(function(r,i){var row=document.createElement('div');row.className='trow'+(i===turnIdx?' turn':'');
+      row.innerHTML='<div class="iv">'+r.init+'</div><div class="tn">'+esc(r.name)+'</div><div class="hp">HP <input type="number" value="'+r.hp+'" data-hp="'+i+'"></div><button class="mini ghost" data-dmgrow="'+i+'">−урон</button><button class="mini ghost" data-del="'+i+'">✕</button>';el.appendChild(row);});}
+  document.getElementById('track').addEventListener('click',function(e){var t=e.target;
+    if(t.dataset.del!==undefined){var di=+t.dataset.del;track.splice(di,1);if(di<turnIdx)turnIdx--;if(turnIdx>=track.length)turnIdx=track.length?track.length-1:-1;renderTrack();}
+    else if(t.dataset.dmgrow!==undefined){var i=+t.dataset.dmgrow,v=prompt('Урон по «'+track[i].name+'»:');if(v!==null&&!isNaN(+v)&&track[i].hp!=='')  {track[i].hp=Math.max(0,(+track[i].hp)-(+v));renderTrack();}}});
+  document.getElementById('track').addEventListener('change',function(e){if(e.target.dataset.hp!==undefined){track[+e.target.dataset.hp].hp=e.target.value;saveTrackLS();}});
+  document.getElementById('iAdd').onclick=function(){var n=document.getElementById('iName').value.trim()||'Боец',iv=document.getElementById('iInit').value,hp=document.getElementById('iHp').value;addToTrack(n,iv===''?rng(20):+iv,hp===''?'':+hp);document.getElementById('iName').value='';document.getElementById('iInit').value='';document.getElementById('iHp').value='';};
+  document.getElementById('iNext').onclick=function(){if(!track.length)return;if(turnIdx===-1){roundN=1;turnIdx=0;}else{turnIdx=(turnIdx+1)%track.length;if(turnIdx===0)roundN++;}renderTrack();};
+  document.getElementById('iClear').onclick=function(){track=[];turnIdx=-1;roundN=0;renderTrack();};
+  renderTrack();
+
+  /* ===== ADVENTURE-SCOPED RENDER ===== */
+  function renderPlot(){var a=ADV[CUR];
+    document.getElementById('plotTitle').textContent='Сюжет · '+a.name;
+    document.getElementById('plotLead').textContent=a.lead;
+    var f=document.getElementById('flow');f.innerHTML='';a.plot.forEach(function(s){var d=document.createElement('div');d.className='step';var p=s[0].split(' · ');d.innerHTML='<h3><i>'+esc(p[0])+'</i>'+(p[1]?esc(p[1]):'')+'</h3><p>'+esc(s[1])+'</p>';f.appendChild(d);});
+    var e=document.getElementById('ends');e.innerHTML='';(a.ends||[]).forEach(function(x){var d=document.createElement('div');d.className='end';d.innerHTML='<b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small>';e.appendChild(d);});
+    var g=document.getElementById('tipgrid');g.innerHTML='';(a.tips||[]).forEach(function(t){var d=document.createElement('div');d.className='card';d.innerHTML='<h4>'+t[0]+'</h4><ul>'+t[1].map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>';g.appendChild(d);});
+  }
+  function renderGloss(){var a=ADV[CUR],g=document.getElementById('glgrid');g.innerHTML='';(a.gloss||[]).forEach(function(t){var d=document.createElement('div');d.className='card';d.dataset.k=(t[0]+' '+t[1]).toLowerCase();d.innerHTML='<h4>'+esc(t[0])+'</h4><p style="margin:0;font-size:.88rem;color:var(--muted)">'+esc(t[1])+'</p>';g.appendChild(d);});}
+  document.getElementById('glFilter').addEventListener('input',function(){var q=this.value.toLowerCase();document.querySelectorAll('#glgrid .card').forEach(function(c){c.style.display=c.dataset.k.indexOf(q)>=0?'':'none';});});
+  function renderPrompts(){var a=ADV[CUR],L=document.getElementById('promptlist');L.innerHTML='';
+    if(!a.prompts||!a.prompts.length){L.innerHTML='<p class="lead">Для этого модуля промптов нет.</p>';return;}
+    var STYLE=" — painterly digital illustration, moody dark-fantasy, cinematic, high detail, no text.";
+    a.prompts.forEach(function(p,i){var full=p[1]+STYLE,box=document.createElement('div');box.className='prompt';box.innerHTML='<div class="ph"><b>'+esc(p[0])+'</b><span class="tg">сцена '+(i+1)+'</span></div><pre>'+esc(full)+'</pre><div class="pf"><button class="b-dmg" data-copy="'+i+'">Копировать</button></div>';L.appendChild(box);});
+  }
+  document.getElementById('promptlist').addEventListener('click',function(e){if(e.target.dataset.copy!==undefined){var a=ADV[CUR],full=a.prompts[+e.target.dataset.copy][1]+" — painterly digital illustration, moody dark-fantasy, cinematic, high detail, no text.";if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(full).then(function(){toast('Скопировано ✓');},function(){toast('Выдели вручную');});}else toast('Выдели вручную');}});
+
+  /* DOCS */
+  var docCache={},curDocId=null;
+  function mdToHtml(md){var lines=md.replace(/\r/g,'').split('\n'),out=[],i,inUl=false,inOl=false,inQ=false,inCode=false;
+    function cl(){if(inUl){out.push('</ul>');inUl=false;}if(inOl){out.push('</ol>');inOl=false;}}
+    function cq(){if(inQ){out.push('</blockquote>');inQ=false;}}
+    function inl(s){s=esc(s);s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');return s;}
+    for(i=0;i<lines.length;i++){var ln=lines[i];
+      if(/^```/.test(ln)){if(inCode){out.push('</pre>');inCode=false;}else{cl();cq();out.push('<pre>');inCode=true;}continue;}
+      if(inCode){out.push(esc(ln));continue;}
+      if(/^\s*$/.test(ln)){cl();cq();continue;}
+      if(/^#{1,6}\s/.test(ln)){cl();cq();var lvl=Math.min(ln.match(/^#+/)[0].length,3);out.push('<h'+lvl+'>'+inl(ln.replace(/^#+\s/,''))+'</h'+lvl+'>');continue;}
+      if(/^---+\s*$/.test(ln)){cl();cq();out.push('<hr>');continue;}
+      if(/^>\s?/.test(ln)){cl();if(!inQ){out.push('<blockquote>');inQ=true;}out.push(inl(ln.replace(/^>\s?/,''))+'<br>');continue;}
+      var mo=ln.match(/^\s*\d+\.\s+(.*)/);if(mo){cq();if(inUl){out.push('</ul>');inUl=false;}if(!inOl){out.push('<ol>');inOl=true;}out.push('<li>'+inl(mo[1])+'</li>');continue;}
+      var mu=ln.match(/^\s*[-*]\s+(.*)/);if(mu){cq();if(inOl){out.push('</ol>');inOl=false;}if(!inUl){out.push('<ul>');inUl=true;}out.push('<li>'+inl(mu[1])+'</li>');continue;}
+      cl();cq();out.push('<p>'+inl(ln)+'</p>');}
+    if(inCode)out.push('</pre>');cl();cq();return out.join('\n');}
+  function loadDoc(fileId,force){var v=document.getElementById('docView');curDocId=fileId;var ck=CUR+'::'+fileId;
+    if(docCache[ck]&&!force){v.innerHTML=docCache[ck];return;}
+    v.innerHTML='<p class="lead">Загрузка «'+esc(fileId)+'»…</p>';
+    fetch(encodeURI('./'+fileId)).then(function(r){if(!r.ok)throw 0;return r.text();}).then(function(t){var h=mdToHtml(t);docCache[ck]=h;if(curDocId===fileId)v.innerHTML=h;}).catch(function(){v.innerHTML='<blockquote>Не удалось загрузить «'+esc(fileId)+'».<br>Читалка .md работает только через локальный сервер (http://127.0.0.1:…), не как file://.</blockquote>';});}
+  function renderDocs(){var a=ADV[CUR],bar=document.getElementById('docbar'),v=document.getElementById('docView');bar.innerHTML='';
+    if(!a.docs){v.innerHTML='<blockquote><b>'+esc(a.name)+'</b> — полный модуль в PDF (Downloads):<br><code>'+esc(a.src||'')+'</code>.<br>Сводка сюжета и статблоки — на вкладках «Сюжет» и «Бестиарий».</blockquote>';return;}
+    a.docs.forEach(function(dc,i){var b=document.createElement('button');b.className='chipf ghost'+(i===0?' on':'');b.textContent=dc.label;b.dataset.file=dc.id;bar.appendChild(b);});
+    var rl=document.createElement('button');rl.className='ghost mini';rl.textContent='↻ Обновить';rl.id='docReload';bar.appendChild(rl);
+    loadDoc(a.docs[0].id);
+  }
+  document.getElementById('docbar').addEventListener('click',function(e){if(e.target.dataset.file){document.querySelectorAll('#docbar .chipf').forEach(function(x){x.classList.remove('on');});e.target.classList.add('on');loadDoc(e.target.dataset.file);}else if(e.target.id==='docReload'&&curDocId){loadDoc(curDocId,true);}});
+
+  /* ===== SWITCH ADVENTURE ===== */
+  var docsShown=false;
+  function switchAdv(key){if(!ADV[key])key='cloud';CUR=key;var a=ADV[key];curBest=a.bestiary;
+    try{localStorage.setItem('gm-adv',key);}catch(e){}
+    document.getElementById('brandName').textContent=a.name;
+    document.getElementById('brandSub').textContent=a.sub;
+    document.title=a.name+' — GM-экран';
+    document.getElementById('sbFilter').value='';
+    renderPlot();buildChips();renderBest('Все');renderGloss();renderPrompts();docsShown=false;
+    if(!document.getElementById('docs').classList.contains('hidden')){renderDocs();docsShown=true;}
+  }
+  (function(){var sel=document.getElementById('advSel');Object.keys(ADV).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=ADV[k].name;sel.appendChild(o);});
+    sel.value='cloud';sel.onchange=function(){switchAdv(this.value);};})();
+
+  /* ===== TABS ===== */
+  var panels=['plot','best','init','party','rules','gloss','docs','prompts'];
+  document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('.tab');if(!b)return;
+    document.querySelectorAll('.tab').forEach(function(t){t.setAttribute('aria-selected',t===b?'true':'false');});
+    panels.forEach(function(p){document.getElementById(p).classList.toggle('hidden',p!==b.dataset.p);});
+    if(b.dataset.p==='docs'&&!docsShown){renderDocs();docsShown=true;}
+  });
+
+  /* ===== HEADER ===== */
+  document.getElementById('diceTray').addEventListener('click',function(e){var b=e.target.closest('button[data-die]');if(!b)return;var faces=+b.dataset.die,cnt=Math.max(1,Math.min(20,+document.getElementById('dieCount').value||1));if(faces===20&&cnt===1){d20(0,'d20');return;}var r=rollN(cnt,faces);showRoll(cnt+'d'+faces,String(r.sum),'['+r.rolls.join(',')+']','');});
+  document.getElementById('btnAdv').onclick=function(){advMode=advMode==='Обычный'?'Преим.':advMode==='Преим.'?'Помеха':'Обычный';this.textContent=advMode;this.style.color=advMode==='Преим.'?'var(--good)':advMode==='Помеха'?'var(--blood)':'';};
+  var root=document.documentElement;
+  try{var _th=localStorage.getItem('gm-theme');if(_th)root.setAttribute('data-theme',_th);}catch(e){}
+  document.getElementById('btnTheme').onclick=function(){var cur=root.getAttribute('data-theme');if(!cur)cur=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';var nx=cur==='dark'?'light':'dark';root.setAttribute('data-theme',nx);try{localStorage.setItem('gm-theme',nx);}catch(e){}};
+
+  /* ===== TOAST + keys ===== */
+  var toEl=document.getElementById('toast'),toT;
+  function toast(m){toEl.textContent=m;toEl.classList.add('show');clearTimeout(toT);toT=setTimeout(function(){toEl.classList.remove('show');},1600);}
+  document.addEventListener('keydown',function(e){var t=e.target.tagName;if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA')return;if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.code==='KeyD')d20(0,'Чистый d20');});
+
+  /* ===== PARTY (персонажи игроков) ===== */
+  var PABK=[['СИЛ','str'],['ЛОВ','dex'],['ТЕЛ','con'],['ИНТ','int'],['МДР','wis'],['ХАР','cha']];
+  var CONDS=['Конц.','Отравлен','Испуган','Опутан','Схвачен','Ничком','Оглох','Ослеплён','Ошеломлён','Парализован','Без сознания'];
+  var party=[];
+  try{var _p=localStorage.getItem('gm-party-v1');if(_p)party=JSON.parse(_p)||[];}catch(e){}
+  function savePartyLS(){try{localStorage.setItem('gm-party-v1',JSON.stringify(party));}catch(e){}}
+  function hpOf(c){return c.hp&&typeof c.hp==='object'?c.hp:{max:0,current:0,temp:0};}
+  function renderParty(){
+    var g=document.getElementById('partygrid');g.innerHTML='';
+    if(!party.length){g.innerHTML='<div class="empty">Партия пуста. Вставь текст чарника выше и нажми «Импортировать».</div>';return;}
+    party.forEach(function(c,idx){
+      var hp=hpOf(c),down=(+hp.current<=0);
+      var d=document.createElement('details');d.className='sb';d.open=true;if(down)d.style.opacity='.55';
+      // abilities + saves
+      var ab6=PABK.map(function(k){var sc=(c.abilities&&c.abilities[k[1]])||10;return '<div class="ab"><b>'+k[0]+'</b><u>'+sc+'</u><s>'+sgn(mod(sc))+'</s></div>';}).join('');
+      var saverow=PABK.map(function(k){var sc=(c.abilities&&c.abilities[k[1]])||10;var prof=(c.saves||[]).indexOf(k[1])>=0;var sv=mod(sc)+(prof?(c.prof||2):0);return '<button class="mini b-save'+(prof?' prof':'')+'" data-psave="'+idx+'_'+k[1]+'">'+k[0]+' '+sgn(sv)+'</button>';}).join('');
+      var atk=(c.attacks||[]).map(function(a,ai){
+        var hit=(a.hit!==null&&a.hit!==undefined)?'<button class="mini b-atk" data-patk="'+idx+'_'+ai+'">⚔ '+sgn(a.hit)+'</button>':'';
+        var dmg=a.damage?'<button class="mini b-dmg" data-pdmg="'+idx+'_'+ai+'">🎲 '+esc(a.damage)+(a.extra?('+'+a.extra):'')+'</button>':'';
+        var sub=(a.type||a.note)?('<small>'+esc([a.type,a.note].filter(Boolean).join(' · '))+'</small>'):'';
+        return '<div class="atk"><div class="an">'+esc(a.name)+'<br>'+sub+'</div>'+hit+dmg+'</div>';
+      }).join('');
+      var spells='';
+      if(c.spellcasting){var sc=c.spellcasting;var slots=sc.slots?Object.keys(sc.slots).map(function(k){return k+'кр:'+sc.slots[k];}).join('  '):'';
+        spells='<div class="kv" style="color:var(--info)"><b style="color:var(--brass2)">✦ Заклинания:</b> ЗС '+(sc.dc||'—')+', атака '+sgn(sc.attack||0)+(sc.ability?(' ('+esc(sc.ability)+')'):'')+(slots?(' · '+slots):'')+'</div>';
+        if(sc.spells&&sc.spells.length)spells+='<ul class="abil" style="border-left:2px solid var(--brass);padding-left:16px;margin-top:4px">'+sc.spells.map(function(s){return '<li><b style="color:var(--ink)">'+esc(s.name)+(s.level!=null?(' ['+s.level+']'):'')+'</b>'+(s.desc?(' — '+esc(s.desc)):'')+'</li>';}).join('')+'</ul>';}
+      var feats=(c.features&&c.features.length)?'<ul class="abil">'+c.features.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'';
+      var cur=(c.conditions||[]);
+      var conds='<div class="saverow"><span class="lbl">сост.</span>'+CONDS.map(function(cn){var on=cur.indexOf(cn)>=0;return '<button class="mini b-save'+(on?' prof':'')+'" data-pcond="'+idx+'_'+encodeURIComponent(cn)+'" style="'+(on?'':'opacity:.6')+'">'+esc(cn)+'</button>';}).join('')+'</div>';
+      var role=[c.class,c.subclass].filter(Boolean).join(' ')+(c.level?(' '+c.level):'')+(c.race?(' · '+c.race):'');
+      d.innerHTML='<summary><div><div class="nm">'+esc(c.name)+(c.player?(' <span class="role" style="text-transform:none">('+esc(c.player)+')</span>'):'')+'</div><div class="role">'+esc(role||'персонаж')+'</div></div>'+
+        '<span class="cr">ур. '+(c.level||'?')+'</span></summary>'+
+        '<div class="sbbody"><div class="vitals">'+
+          '<span class="vit">КД <b>'+esc(c.ac)+'</b></span>'+
+          '<span class="vit">HP <b>'+esc(hp.current)+'</b>/'+esc(hp.max)+(hp.temp?(' +'+esc(hp.temp)):'')+'</span>'+
+          '<button class="mini b-init" data-php="'+idx+'_-5">−5</button><button class="mini b-init" data-php="'+idx+'_-1">−1</button>'+
+          '<button class="mini b-init" data-php="'+idx+'_1">+1</button><button class="mini b-init" data-php="'+idx+'_5">+5</button>'+
+          '<span class="vit">Скор. '+esc(c.speed||'—')+'</span><span class="vit">Иниц '+sgn(c.initiative||0)+'</span><span class="vit">Маст. '+sgn(c.prof||2)+'</span>'+
+        '</div><div class="ab6">'+ab6+'</div><div class="saverow"><span class="lbl">спас</span>'+saverow+'</div>'+
+        '<div class="kv"><b>Навыки:</b> '+esc(c.skills||'—')+'</div>'+
+        (c.passives?('<div class="kv"><b>Пассивки:</b> '+esc(Object.keys(c.passives).map(function(k){return k+' '+c.passives[k];}).join(', '))+'</div>'):'')+
+        '<div class="kv"><b>Чувства:</b> '+esc(c.senses||'—')+' · <b>Языки:</b> '+esc(c.languages||'—')+'</div>'+
+        spells+(atk?('<div style="margin-top:8px">'+atk+'</div>'):'')+feats+
+        (c.gear&&c.gear.length?('<div class="kv"><b>Снаряжение:</b> '+esc(c.gear.join(', '))+'</div>'):'')+
+        conds+
+        '<div class="kv"><b>Заметки:</b> <span contenteditable="true" data-pnote="'+idx+'" style="outline:none;border-bottom:1px dashed var(--line)">'+esc(c.notes||'')+'</span></div>'+
+        '<div style="margin-top:10px;display:flex;gap:6px"><button class="mini b-init" data-pinit="'+idx+'">+ иниц</button><button class="mini ghost" data-pdel="'+idx+'">✕ убрать</button></div>'+
+        '</div>';
+      g.appendChild(d);
+    });
+  }
+  document.getElementById('partygrid').addEventListener('click',function(e){var t=e.target;
+    if(t.dataset.patk){var p=t.dataset.patk.split('_'),c=party[+p[0]],a=c.attacks[+p[1]];d20(a.hit,c.name+' — '+a.name);}
+    else if(t.dataset.pdmg){var q=t.dataset.pdmg.split('_'),cc=party[+q[0]],aa=cc.attacks[+q[1]];var r=parseDmg(aa.damage),ex=aa.extra?parseDmg(aa.extra):null,tot=r.total+(ex?ex.total:0);showRoll(cc.name+' — урон '+aa.name,String(tot),r.detail+(ex?(' + '+ex.detail):''),'');}
+    else if(t.dataset.psave){var s=t.dataset.psave.split('_'),cs=party[+s[0]],ak=s[1];var sc=(cs.abilities&&cs.abilities[ak])||10;var prof=(cs.saves||[]).indexOf(ak)>=0;var lab=PABK.filter(function(k){return k[1]===ak;})[0][0];d20(mod(sc)+(prof?(cs.prof||2):0),cs.name+' — спас '+lab);}
+    else if(t.dataset.php!==undefined){var h=t.dataset.php.split('_'),ch=party[+h[0]],hp=hpOf(ch);hp.current=Math.max(0,Math.min(hp.max+(hp.temp||0),(+hp.current)+(+h[1])));ch.hp=hp;savePartyLS();renderParty();}
+    else if(t.dataset.pcond!==undefined){var cd=t.dataset.pcond.split('_'),chc=party[+cd[0]],name=decodeURIComponent(cd[1]);chc.conditions=chc.conditions||[];var i=chc.conditions.indexOf(name);if(i>=0)chc.conditions.splice(i,1);else chc.conditions.push(name);savePartyLS();renderParty();}
+    else if(t.dataset.pinit!==undefined){var ci=party[+t.dataset.pinit];var a1=rng(20),b1=rng(20),pk=advMode==='Преим.'?Math.max(a1,b1):advMode==='Помеха'?Math.min(a1,b1):a1,roll=pk+(ci.initiative||0);addToTrack(ci.name,roll,hpOf(ci).current);showRoll(ci.name+' — инициатива',String(roll),'d20 ['+pk+']'+sgn(ci.initiative||0),'');toast(ci.name+' в трекере ('+roll+')');}
+    else if(t.dataset.pdel!==undefined){party.splice(+t.dataset.pdel,1);savePartyLS();renderParty();}
+  });
+  document.getElementById('partygrid').addEventListener('input',function(e){if(e.target.dataset.pnote!==undefined){party[+e.target.dataset.pnote].notes=e.target.textContent;savePartyLS();}});
+  document.getElementById('pcImport').onclick=function(){
+    var txt=document.getElementById('pcText').value.trim(),msg=document.getElementById('pcMsg');
+    if(!txt){msg.textContent='Вставь текст персонажа.';return;}
+    var btn=this;btn.disabled=true;btn.textContent='Парсинг…';msg.style.color='var(--muted)';msg.textContent='Нейронка разбирает лист…';
+    fetch('./api/parse-character',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt})})
+      .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+      .then(function(res){
+        if(!res.ok){msg.style.color='var(--blood)';msg.textContent='Ошибка: '+(res.j&&res.j.error||'неизвестно');return;}
+        res.j.conditions=res.j.conditions||[];party.push(res.j);savePartyLS();renderParty();
+        document.getElementById('pcText').value='';msg.style.color='var(--good)';msg.textContent='Добавлен: '+(res.j.name||'персонаж');
+      })
+      .catch(function(){msg.style.color='var(--blood)';msg.textContent='Нет связи с сервером. Импорт работает только когда страницу отдаёт go-screen (не file://).';})
+      .then(function(){btn.disabled=false;btn.textContent='Импортировать';});
+  };
+  document.getElementById('pcClear').onclick=function(){if(party.length&&confirm('Убрать всех персонажей?')){party=[];savePartyLS();renderParty();}};
+  renderParty();
+
+  /* ===== INIT ===== */
+  var _adv0='cloud';try{var _sa=localStorage.getItem('gm-adv');if(_sa&&ADV[_sa])_adv0=_sa;}catch(e){}
+  document.getElementById('advSel').value=_adv0;
+  switchAdv(_adv0);
+})();
+</script>
+
+</body>
+</html>

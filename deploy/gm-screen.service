@@ -1,0 +1,26 @@
+[Unit]
+Description=gm-screen (D&D 5e GM screen + character import)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Бинарь и web/ разложены сюда при деплое.
+WorkingDirectory=/opt/gm-screen
+ExecStart=/opt/gm-screen/gm-screen
+# Ключ и оверрайды — в отдельном файле, права 600, root-only. В git его НЕТ.
+EnvironmentFile=/etc/gm-screen/env
+Environment=GM_WEB_DIR=/opt/gm-screen/web
+Restart=on-failure
+RestartSec=3
+
+# Ограничения — сервису не нужны ни root, ни запись куда-либо, кроме своего дерева.
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadOnlyPaths=/opt/gm-screen
+
+[Install]
+WantedBy=multi-user.target
