@@ -8,6 +8,13 @@
 *.env
 .env
 .env.*
+# логины/пароли Basic Auth — живут ТОЛЬКО на хосте, не в публичной репе
+.htpasswd
+*.htpasswd
+htpasswd
+
+# --- node (тесты фронта) ---
+node_modules/
 
 # --- build artifacts ---
 /gm-screen

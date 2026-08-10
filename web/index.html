@@ -254,9 +254,9 @@
 
   <section role="tabpanel" id="party" class="hidden">
     <h2 class="eyebrow">Партия игроков</h2>
-    <p class="lead">Вставь текст чарника в любом виде — нейронка приведёт к формату и добавит карточку с бросками, HP и состояниями. Персонажи сохраняются в браузере.</p>
+    <p class="lead">Разбери чарник локальным скиллом <code>parsing-character-sheets</code> (под подпиской, без ключей) и вставь готовый JSON <code>gm-character/v1</code> сюда — карточка добавится к партии, старые не тронутся. Приняв массив, добавит нескольких. Персонажи сохраняются в браузере.</p>
     <div class="initbar" style="align-items:flex-start">
-      <textarea id="pcText" placeholder="Плут 3, полурослик. КД 15, HP 24. ЛОВ 16, ТЕЛ 14, ИНТ 12… Рапира +5 (1d8+3), скрытная атака 2d6. Владения спасами: ЛОВ, ИНТ…" style="flex:1;min-width:240px;min-height:70px;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);font-family:var(--sans);font-size:.9rem;resize:vertical"></textarea>
+      <textarea id="pcText" placeholder='Вставь JSON от скилла: {"schema":"gm-character/v1","name":"Мерген","abilities":{…},…}  — или, если экран запущен локально с ключом, просто текст чарника.' style="flex:1;min-width:240px;min-height:70px;background:var(--raise);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--ink);font-family:var(--sans);font-size:.9rem;resize:vertical"></textarea>
       <div style="display:flex;flex-direction:column;gap:6px">
         <button class="d20" id="pcImport">Импортировать</button>
         <button class="ghost mini" id="pcClear">Очистить всех</button>
@@ -1625,18 +1625,45 @@
     else if(t.dataset.pdel!==undefined){party.splice(+t.dataset.pdel,1);savePartyLS();renderParty();}
   });
   document.getElementById('partygrid').addEventListener('input',function(e){if(e.target.dataset.pnote!==undefined){party[+e.target.dataset.pnote].notes=e.target.textContent;savePartyLS();}});
+  // Аддитивно и безопасно: валидируем ДО push, поэтому битый ввод не трогает уже
+  // загруженную партию. Возвращает имя добавленного персонажа или null.
+  function pcAdd(obj){
+    if(!obj||typeof obj!=='object')return null;
+    if(!obj.name||!obj.abilities||typeof obj.abilities!=='object')return null;
+    obj.conditions=obj.conditions||[];
+    party.push(obj);
+    return obj.name;
+  }
   document.getElementById('pcImport').onclick=function(){
     var txt=document.getElementById('pcText').value.trim(),msg=document.getElementById('pcMsg');
-    if(!txt){msg.textContent='Вставь текст персонажа.';return;}
-    var btn=this;btn.disabled=true;btn.textContent='Парсинг…';msg.style.color='var(--muted)';msg.textContent='Нейронка разбирает лист…';
+    if(!txt){msg.style.color='var(--muted)';msg.textContent='Вставь готовый JSON карточки (из скилла parsing-character-sheets) или текст чарника.';return;}
+    // 1) Основной путь: вставлен готовый gm-character/v1 JSON — добавляем локально, без сервера.
+    var parsed=null;try{parsed=JSON.parse(txt);}catch(e){parsed=null;}
+    if(parsed!==null){
+      var list=Array.isArray(parsed)?parsed:[parsed],added=[],bad=0;
+      for(var i=0;i<list.length;i++){var nm=pcAdd(list[i]);if(nm)added.push(nm);else bad++;}
+      if(added.length){
+        savePartyLS();renderParty();document.getElementById('pcText').value='';
+        msg.style.color='var(--good)';
+        msg.textContent='Добавлен'+(added.length>1?'ы':'')+': '+added.join(', ')+(bad?(' · пропущено битых: '+bad):'');
+      }else{
+        msg.style.color='var(--blood)';
+        msg.textContent='Это JSON, но не карточка gm-character/v1 (нужны name и abilities). Партия не изменена.';
+      }
+      return;
+    }
+    // 2) Фолбэк: не JSON → разбор текста локальным сервером (только когда страницу отдаёт go-screen с ключом).
+    var btn=this;btn.disabled=true;btn.textContent='Парсинг…';msg.style.color='var(--muted)';msg.textContent='Разбор текста на локальном сервере…';
     fetch('./api/parse-character',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:txt})})
       .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
       .then(function(res){
         if(!res.ok){msg.style.color='var(--blood)';msg.textContent='Ошибка: '+(res.j&&res.j.error||'неизвестно');return;}
-        res.j.conditions=res.j.conditions||[];party.push(res.j);savePartyLS();renderParty();
-        document.getElementById('pcText').value='';msg.style.color='var(--good)';msg.textContent='Добавлен: '+(res.j.name||'персонаж');
+        var nm=pcAdd(res.j);
+        if(!nm){msg.style.color='var(--blood)';msg.textContent='Сервер вернул не карточку. Партия не изменена.';return;}
+        savePartyLS();renderParty();document.getElementById('pcText').value='';
+        msg.style.color='var(--good)';msg.textContent='Добавлен: '+nm;
       })
-      .catch(function(){msg.style.color='var(--blood)';msg.textContent='Нет связи с сервером. Импорт работает только когда страницу отдаёт go-screen (не file://).';})
+      .catch(function(){msg.style.color='var(--blood)';msg.textContent='Не JSON и локального сервера нет. Разбери чарник скиллом parsing-character-sheets и вставь готовый JSON.';})
       .then(function(){btn.disabled=false;btn.textContent='Импортировать';});
   };
   document.getElementById('pcClear').onclick=function(){if(party.length&&confirm('Убрать всех персонажей?')){party=[];savePartyLS();renderParty();}};

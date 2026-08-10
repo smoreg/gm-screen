@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  go:
+    name: Go build / vet / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+
+  web:
+    name: Front-end (jsdom) — импорт не ломает партию
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test
+
+  secrets:
+    name: Секрет-скан (репа публичная)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Нет секретов в отслеживаемых файлах
+        run: |
+          set -e
+          fail=0
+          # 1) настоящие Anthropic-ключи (плейсхолдер sk-ant-... не ловится: нужно ≥20 символов)
+          if git grep -nIE 'sk-ant-[A-Za-z0-9_-]{20,}' -- . ; then
+            echo "::error::похоже на настоящий ANTHROPIC_API_KEY в репозитории"; fail=1
+          fi
+          # 2) htpasswd / крипто-хеши паролей
+          if git grep -nIE '\$2[aby]\$|\$apr1\$|\{SHA\}' -- . ; then
+            echo "::error::htpasswd/крипто-хеш пароля в репозитории"; fail=1
+          fi
+          # 3) файлы паролей Basic Auth не должны отслеживаться
+          if git ls-files | grep -E '\.htpasswd$|(^|/)htpasswd$' ; then
+            echo "::error::.htpasswd попал в git"; fail=1
+          fi
+          # 4) реальный secrets/env (не пример) не должен отслеживаться
+          if git ls-files | grep -E '^secrets/env$' ; then
+            echo "::error::secrets/env (реальный ключ) в git"; fail=1
+          fi
+          if [ "$fail" = "1" ]; then
+            echo "СЕКРЕТ-СКАН: провал — что-то чувствительное в репозитории"; exit 1
+          fi
+          echo "СЕКРЕТ-СКАН: чисто — ключей и паролей в отслеживаемых файлах нет"

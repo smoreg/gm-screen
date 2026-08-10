@@ -1,0 +1,12 @@
+{
+  "name": "gm-screen-web-tests",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Front-end regression tests for the GM screen (jsdom). The screen itself needs no build — this is only for CI.",
+  "scripts": {
+    "test": "node test/import.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
