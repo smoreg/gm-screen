@@ -28,3 +28,6 @@ node_modules/
 # --- os / editor ---
 .DS_Store
 *.swp
+
+# полные переводы купленных модулей — приватно (сервер за Basic Auth), НЕ в публичную репу
+/web/modules-ru/
